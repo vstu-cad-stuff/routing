@@ -1,0 +1,111 @@
+html {
+  width: 100%;
+}
+
+body {
+  margin: 0 auto;
+  padding-top: 10px;
+  font-family: 'PT Sans', serif;
+  background: #fff;
+  width: 800px;
+}
+
+#path {
+  display: inline-block;
+  margin-bottom: 2em;
+}
+
+#path span {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+#path a {
+  font-size: 25pt;
+  color: #000;
+  text-decoration: none;
+  font-family: 'Roboto Slab', serif;
+}
+
+#path a:hover {
+  opacity: 0.5;
+}
+
+#logo {
+  width: 100px;
+  vertical-align: middle;
+  margin-top: 15px;
+}
+
+#logo:hover {
+	opacity: 0.5;
+}
+
+#path .separator {
+  height: 30px;
+  margin-left: -10px;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+hr {
+  border: 0;
+  border-top: 1px dashed #000;
+  height: 0;
+}
+
+.wrapper {
+  padding: 0 40px;
+}
+
+#main span {
+  font-size: 12pt;
+}
+
+.links {
+  list-style: none;
+}
+
+.links li {
+  display: block;
+  margin: 0 10px;
+  font-weight: bold;
+}
+
+.links a:hover {
+  opacity: .5;
+}
+
+.links a { 
+  text-decoration: none;
+  color: #000;
+}
+
+#footer {
+  font-size: 10pt;
+  text-align: left;
+}
+
+#footer span {
+  display: block;
+  margin: -5px 40px;
+}
+
+.references {
+  list-style: none;
+  display: inline-block;
+}
+
+.references li {
+  display: inline-block;
+  font-weight: bold;
+}
+
+.references a:hover {
+  opacity: .5;
+}
+
+.references a { 
+  text-decoration: none;
+  color: #000;
+}

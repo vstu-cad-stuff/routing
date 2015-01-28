@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
+    <script src="http://scripter-co.github.io/leaflet-plotter/src/leaflet.plotter.js"></script> 
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
+    <!--[if lte IE 8]>
+        <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.ie.css" />
+    <![endif]-->
+    <style>
+        body { margin:0; padding:0; font-family: arial; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+        #toggle-readonly { position:absolute; bottom: 0; left: 0; background-color: red; color: #000; padding: 20px; font-size: 2em; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script type="text/javascript">
+        var map = L.map('map').setView([48.7970258, 44.7658257], 15);
+
+        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+	
+        var plottedPolyline = L.Polyline.Plotter([
+            [48.7941137,44.7754019],
+            [48.7939747,44.7752836],
+            [48.7938896,44.7752119],
+            [48.7953940,44.7708645],
+            [48.7953414,44.7708948],
+            [48.7953576,44.7708467],
+            [48.7953700,44.7708100],
+            [48.7970258,44.7658257],
+            [48.7973127,44.7648845],
+            [48.7979452,44.7628094],
+            [48.7982277,44.7618825],
+            [48.7986510,44.7604938],
+            [48.7987463,44.7601813],
+            [48.7992140,44.7586467],
+            [48.7993535,44.7581891],
+            [48.7994611,44.7578360],
+            [48.7997893,44.7567592],
+            [48.8000736,44.7558265],
+            [48.8002167,44.7553571],
+            [48.8003491,44.7548916],
+            [48.8004163,44.7548045],
+            [48.8008819,44.7533466],
+            [48.8010930,44.7526648],
+            [48.8011339,44.7525330],
+            [48.8011506,44.7524789],
+            [48.8013556,44.7518167],
+            [48.8016070,44.7510047],
+        ], { weight: 5 }).addTo(map);
+    </script>
+</body>
+</html>
