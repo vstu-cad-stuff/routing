@@ -1,4 +1,4 @@
-cluster-routing
+routing
 ===============
 * [path_finding.py](path_finding.py): простая версия "жадного" алгоритма по обходу кластеров
 * [path_finding_upd.py](path_finding_upd.py): модификация предыдущего алгоритма для работы с "реальными" данными
