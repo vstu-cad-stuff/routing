@@ -13,18 +13,24 @@ var color_circle = [
     '#00308f', '#6666cc', '#5d8aa8', '#000000', '#003fc0',
     '#007ba7', '#0066ff', '#003153', '#909090', '#6495ed'
 ];
-draw = function() {
+function draw() {
     circles = new L.FeatureGroup();
     for (i in centers) {
         lat = centers[i][0];
         lon = centers[i][1];
         ctr = centers[i][2];
+        text = '<b>#' + ctr + ', pop: ' + data[i][i] + '</b><br>' + lat + ', ' + lon;
+        for (j in data[i]) {
+            if ( i != j ) {
+                text += '<br>#' + i + ' -> #' + j + ' = ' + data[i][j];
+            }
+        }
         circle = L.circleMarker([lat, lon], {
             color: color_circle[ctr],
             radius: Math.log2(centers.length) * 10,
             opacity: 0.7,
             fillOpacity: 0.5
-        }).addTo(map).bindPopup('<b>' + ctr + '</b><br />' + lat + ', ' + lon);
+        }).bindLabel('#' + i, {noHide: true}).addTo(map).bindPopup(text);
         circles.addLayer(circle);
     }
     map.addLayer(circles);
@@ -53,7 +59,8 @@ draw = function() {
     }
     map.addLayer(layer);
 }
-update_func = function() {
+
+function update_func() {
     checkboxes=['01', '02', '03', '04', '05']
     for (i = 0; i < 5; i++) {
         if (document.getElementById(checkboxes[i]).checked === true) {
@@ -65,8 +72,15 @@ update_func = function() {
     clear();
     draw();
 }
-clear = function() {
+
+function clear() {
     map.removeLayer(circles);
     map.removeLayer(layer);
 }
+
+// function onClick(e) {
+
+// }
+
+
 draw();

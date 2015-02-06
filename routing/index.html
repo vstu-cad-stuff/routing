@@ -2,11 +2,14 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
+    <!-- <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script> -->
+    <script src="https://raw.githubusercontent.com/Leaflet/Leaflet.label/gh-pages/leaflet.js"></script>
     <script src="https://rawgit.com/bbecquet/Leaflet.PolylineDecorator/master/src/L.LineUtil.PolylineDecorator.js"></script>
     <script src="https://rawgit.com/bbecquet/Leaflet.PolylineDecorator/master/src/L.Symbol.js"></script>
     <script src="https://rawgit.com/bbecquet/Leaflet.PolylineDecorator/master/src/L.PolylineDecorator.js"></script>
-    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
+    <script src="https://leaflet.github.io/Leaflet.label/leaflet.label.js"></script>
+    <link rel="stylesheet" href="https://leaflet.github.io/Leaflet.label/leaflet.css" />
+    <link rel="stylesheet" href="https://leaflet.github.io/Leaflet.label/leaflet.label.css"/>
     <style>
         body { margin:0; padding:0; font-family: arial; }
         #map { position:absolute; left: 10%; top:0; bottom:0; width:90%; }
@@ -16,7 +19,7 @@
     </style>
   </head>
   <body>
-    <script type="text/javascript">centers = []; path = []; select = 0;</script>
+    <script type="text/javascript">select = 0;</script>
     <div id="left">
       Выберите маршрут для отрисовки: <br /><br />
       <input type="checkbox" id="01" onClick="update_func()"/>
@@ -33,6 +36,7 @@
     <div id="map"></div>
     <script src="centers.js"></script>    
     <script src="routing.js"></script>
+    <script src="data.js"></script>
     <script src="main.js"></script>
   </body>
 </html>
