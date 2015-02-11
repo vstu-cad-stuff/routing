@@ -4,7 +4,6 @@ var sec_layer;
 var layergroup;
 var counters = [0, 0, 0, 0, 0];
 var markers = [];
-var flows = [];
 var map = L.map('map').setView([48.7941, 44.8009], 13);
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
