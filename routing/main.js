@@ -1,6 +1,7 @@
 var circles;
 var layer;
 var sec_layer;
+var oth_layer;
 var layergroup;
 var counters = [0, 0, 0, 0, 0, 0];
 var markers = [];
@@ -9,6 +10,7 @@ var map = L.map('map').setView([48.7941, 44.8009], 13);
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
+var oth_color = '#7b36ec';
 var color_lines  = [
     '#ff0000', '#00BB00', '#9966cc', '#8db600', '#d2691e', '#423189'
 ];
@@ -84,6 +86,35 @@ function update_func() {
     draw();
 }
 
+function draw_other() {
+    str = document.getElementById("input_box").value.split(" ");
+    clear_other();
+    oth_layer = new L.LayerGroup();
+    layergroup = new L.LayerGroup();
+    for ( i = 0; i < str.length - 1; i++ ) {
+        j1 = parseInt(str[i]);
+        j2 = parseInt(str[i+1]);
+        polyline = L.polyline([[centers[j1][0], centers[j1][1]], [centers[j2][0], centers[j2][1]]], {
+            color: oth_color,
+            weight: 5, 
+            smoothFactor: 1
+        });
+        polylineDecorator = L.polylineDecorator(polyline, {
+            patterns: [{
+                offset: 25,
+                repeat: 100,
+                symbol: L.Symbol.arrowHead({
+                    pixelSize: 10,
+                    pathOptions: {color: oth_color, fillOpacity: 1, weight: 0}
+                })
+            }]
+        });
+        layergroup = L.layerGroup([polyline, polylineDecorator]);
+        oth_layer.addLayer(layergroup);
+    }
+    map.addLayer(oth_layer);
+}
+
 function clear_path() {
     for (i = 0; i < route_count; i++) {
         document.getElementById(checkboxes[i]).checked = false;
@@ -97,6 +128,12 @@ function clear_path() {
 function clear_flow() {
     if (map.hasLayer(sec_layer)) {
         map.removeLayer(sec_layer);
+    }
+}
+
+function clear_other() {
+    if (map.hasLayer(oth_layer)) {
+        map.removeLayer(oth_layer);
     }
 }
 

@@ -12,7 +12,7 @@
     <style>
         body { margin:0; padding:0; font-family: arial; }
         #map { position:absolute; left: 10%; top:0; bottom:0; width:90%; }
-        #left { position: absolute; left: 0; top: 45%; width: 10%; height: 100%; text-align: center; }
+        #left { position: absolute; left: 0; top: 30%; width: 10%; height: 100%; text-align: center; }
         #larrow, #rarrow, #time { margin-right: 5px; }
         #larrow, #rarrow { font-weight: bold; }
     </style>
@@ -20,22 +20,27 @@
   <body>
     <script type="text/javascript">select = 0;</script>
     <div id="left">
-      Select a route<br>to draw:<br>
+      Select route:<br>
       <input type="checkbox" id="01" onClick="update_func()"/>
-      <span id="select">1</span><br>
+      <span id="select">1</span>
       <input type="checkbox" id="02" onClick="update_func()"/>
-      <span id="select">2</span><br>
+      <span id="select">2</span>
       <input type="checkbox" id="03" onClick="update_func()"/>
       <span id="select">3</span><br>
       <input type="checkbox" id="04" onClick="update_func()"/>
-      <span id="select">4</span><br>
+      <span id="select">4</span>
       <input type="checkbox" id="05" onClick="update_func()"/>
-      <span id="select">5</span><br>
-      Special route:<br>
+      <span id="select">5</span>
+      <hr>Special route:<br>
       <input type="checkbox" id="06" onClick="update_func()"/>
-      <span id="select">sorted</span><br><br>
-      <input type="button" onClick="clear_path()" value="Remove routes"/>
-      <input type="button" onClick="clear_flow()" value="Remove flows"/>
+      <span id="select">sorted</span>
+      <hr>Remove:<br>
+      <input type="button" onClick="clear_path()" value="routes"/>
+      <input type="button" onClick="clear_flow()" value="flows"/>
+      <hr>Input other route:
+      <input type="text" id="input_box"/>
+      <input type="button" onClick="draw_other()" value="Draw"/>
+      <input type="button" onClick="clear_other()" value="Remove"/>
     </div>
     <div id="map"></div>
     <script src="centers.js"></script>    
