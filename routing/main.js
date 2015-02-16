@@ -2,14 +2,15 @@ var circles;
 var layer;
 var sec_layer;
 var layergroup;
-var counters = [0, 0, 0, 0, 0];
+var counters = [0, 0, 0, 0, 0, 0];
 var markers = [];
+var route_count = 6;
 var map = L.map('map').setView([48.7941, 44.8009], 13);
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 var color_lines  = [
-    '#ff0000', '#00BB00', '#9966cc', '#8db600', '#d2691e'
+    '#ff0000', '#00BB00', '#9966cc', '#8db600', '#d2691e', '#423189'
 ];
 var color_circle = [
     '#00308f', '#6666cc', '#5d8aa8', '#000000', '#003fc0',
@@ -41,7 +42,7 @@ function draw() {
     map.addLayer(circles);
     layer = new L.LayerGroup();
     layergroup = new L.LayerGroup();
-    for (select = 0; select < 5; select++) {
+    for (select = 0; select < route_count; select++) {
         if (counters[select] != 0 ) {
             polyline = L.polyline(path[select], {
                 color: color_lines[select],
@@ -66,8 +67,8 @@ function draw() {
 }
 
 function update_func() {
-    checkboxes=['01', '02', '03', '04', '05']
-    for (i = 0; i < 5; i++) {
+    checkboxes=['01', '02', '03', '04', '05', '06']
+    for (i = 0; i < route_count; i++) {
         if (document.getElementById(checkboxes[i]).checked === true) {
             counters[i] = 1;
         } else {
@@ -84,7 +85,7 @@ function update_func() {
 }
 
 function clear_path() {
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < route_count; i++) {
         document.getElementById(checkboxes[i]).checked = false;
         counters[i] = 0;
     } 
