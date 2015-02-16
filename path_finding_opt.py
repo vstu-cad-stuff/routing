@@ -1,5 +1,7 @@
 #!/bin/env python
 # -*- coding: utf-8 -*-
+from math import sqrt
+from copy import deepcopy
 
 W = [170, 1170, 910, 230, 780, 700, 70, 300, 420, 250]
 G = [
@@ -14,6 +16,7 @@ G = [
     [ 68, 475, 333, 183, 256, 478, 487, 367,   0, 212],
     [355, 483, 200, 100, 312,  55, 131,  92, 212,   0]
 ]
+G2 = deepcopy(G)
 
 def find_max(A):
     max_a = A[0][0]
@@ -24,11 +27,13 @@ def find_max(A):
                 max_a = A[j][i]
                 n, m = i, j
     return n, m
+
 def max_in_matrix(n, m, A):
     if A[n] > A[m]:
         return n, m
     else:
         return m, n
+
 def max_in_list(n, A, path):
     lst = list(map(lambda x: x[n], A))
     for i in range(len(lst)):
@@ -41,6 +46,30 @@ def max_in_list(n, A, path):
             k = i
     return k
 
+def analyze(G, list):
+    cost = 0
+    total = 0
+    for x in W:
+        total += x
+    for i in range(0, len(list)-1):
+        cost += G[list[i]][list[i+1]]
+    return total * 1.0 / cost
+
+def swap(arr, i, j):
+    arr[i], arr[j] = arr[j], arr[i]
+
+def sort_list(C):
+    lst = [x * y for x, y in C]
+    abc = [x for x in range(0, len(lst))]
+    i = len(C)
+    while i > 1:
+        for j in xrange(i-1):
+            if lst[j] > lst[j+1]:
+                swap(lst, j, j+1)
+                swap(abc, j, j+1)
+        i -= 1
+    return abc
+
 if __name__ == '__main__':
     # загружаем данные из файла
     f = open('./data/points.txt', 'r')
@@ -48,7 +77,7 @@ if __name__ == '__main__':
     f.close()
     # преобразуем данные из файла к виду [[0, 1], ...]
     N = list(map(lambda x: [float(x.split(' ')[0]), float(x.split(' ')[1])], s))
-    f = open('routing.js', 'w')
+    write_str = 'path = [\n'
     for x in range(len(W)//2):
         path = []
         n, m = find_max(G)
@@ -59,8 +88,21 @@ if __name__ == '__main__':
         for i in range(len(W)-1):
             n = max_in_list(n, G, path)
             path.append(n)
-        print('[{:03d}] path = {}'.format(x, path))
-        f.write('path[{}] = [\n'.format(x))
+        print('[{:03d}] path = {}, with cost = {}'.format(x, path, analyze(G2, path)))
+        write_str += '\t['
         for p in path:
-            f.write('\t[{:0.06f}, {:0.06f}],\n'.format(N[p][0], N[p][1]))
-        f.write('];\n')
+            write_str += '[{:0.06f}, {:0.06f}],\n\t '.format(N[p][0], N[p][1])
+        write_str = write_str[:-3] + '],\n'
+    # найдём маршрут методом сортировки
+    sort_lst = sort_list(N)
+    print("[srt] path = {}, with cost = {}".format(sort_lst, analyze(G2, sort_lst)))
+    # добавление маршрута методом сортировки
+    write_str += '\t['
+    for p in sort_lst:
+        write_str += '[{:0.06f}, {:0.06f}],\n\t '.format(N[p][0], N[p][1])
+    write_str = write_str[:-3] + '],\n'
+    # запись маршрутов
+    write_str = write_str[:-2] + '\n];'
+    f = open('routing.js', 'w')
+    f.write(write_str)
+    f.close()
