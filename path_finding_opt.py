@@ -3,20 +3,19 @@
 from math import sqrt
 from copy import deepcopy
 
-W = [170, 1170, 910, 230, 780, 700, 70, 300, 420, 250]
 G = [
-    [  0, 403, 446, 244, 257, 343,   2, 455,  68, 355],
-    [403,   0, 360, 299, 381, 162, 429, 259, 475, 483],
-    [446, 360,   0, 490,  92, 159, 197, 281, 333, 200],
-    [244, 299, 490,   0, 320, 496, 453, 283, 183, 100],
-    [257, 381,  92, 320,   0, 251, 117, 359, 256, 312],
-    [343, 162, 159, 496, 251,   0,  99, 170, 478,  55],
-    [  2, 429, 197, 453, 117,  99,   0, 171, 487, 131],
-    [455, 259, 281, 283, 359, 170, 171,   0, 367,  92],
-    [ 68, 475, 333, 183, 256, 478, 487, 367,   0, 212],
-    [355, 483, 200, 100, 312,  55, 131,  92, 212,   0]
+    [170,  403, 446, 244, 257, 343,   2, 455,  68, 355],
+    [403, 1170, 360, 299, 381, 162, 429, 259, 475, 483],
+    [446,  360, 910, 490,  92, 159, 197, 281, 333, 200],
+    [244,  299, 490, 230, 320, 496, 453, 283, 183, 100],
+    [257,  381,  92, 320, 780, 251, 117, 359, 256, 312],
+    [343,  162, 159, 496, 251, 700,  99, 170, 478,  55],
+    [  2,  429, 197, 453, 117,  99,  70, 171, 487, 131],
+    [455,  259, 281, 283, 359, 170, 171, 300, 367,  92],
+    [ 68,  475, 333, 183, 256, 478, 487, 367, 420, 212],
+    [355,  483, 200, 100, 312,  55, 131,  92, 212, 250]
 ]
-G2 = deepcopy(G)
+W = deepcopy(G)
 
 def find_max(A):
     max_a = A[0][0]
@@ -47,13 +46,14 @@ def max_in_list(n, A, path):
     return k
 
 def analyze(G, list):
-    cost = 0
-    total = 0
-    for x in W:
-        total += x
+    totalCoast = 0
+    coast = 0
+    for x in range(len(G[0])):
+        totalCoast += G[x][x]
     for i in range(0, len(list)-1):
-        cost += G[list[i]][list[i+1]]
-    return total * 1.0 / cost
+        sub = G[list[i+1]][list[i]]
+        coast += sub
+    return coast * 1.0 / totalCoast
 
 def swap(arr, i, j):
     arr[i], arr[j] = arr[j], arr[i]
@@ -77,25 +77,25 @@ if __name__ == '__main__':
     f.close()
     # преобразуем данные из файла к виду [[0, 1], ...]
     N = list(map(lambda x: [float(x.split(' ')[0]), float(x.split(' ')[1])], s))
+    matrix_width = len(G[0])
     write_str = 'path = [\n'
-    for x in range(len(W)//2):
+    for x in range(matrix_width//2):
         path = []
         n, m = find_max(G)
         n, m = max_in_matrix(n, m, W)
         path.append(n)
-        W[n] = -1
-        G[n][m] = -1
-        for i in range(len(W)-1):
+        G[n][n] = G[n][m] = -1
+        for i in range(matrix_width-1):
             n = max_in_list(n, G, path)
             path.append(n)
-        print('[{:03d}] path = {}, with cost = {}'.format(x, path, analyze(G2, path)))
+        print('[{:03d}] path = {}, with cost = {:0.04f}'.format(x, path, analyze(W, path)))
         write_str += '\t['
         for p in path:
             write_str += '[{:0.06f}, {:0.06f}],\n\t '.format(N[p][0], N[p][1])
         write_str = write_str[:-3] + '],\n'
     # найдём маршрут методом сортировки
     sort_lst = sort_list(N)
-    print("[srt] path = {}, with cost = {}".format(sort_lst, analyze(G2, sort_lst)))
+    print("[srt] path = {}, with cost = {:0.04f}".format(sort_lst, analyze(W, sort_lst)))
     # добавление маршрута методом сортировки
     write_str += '\t['
     for p in sort_lst:
