@@ -1,6 +1,7 @@
 #!/bin/env python
 # -*- coding: utf-8 -*-
 from numpy.random import shuffle
+from copy import deepcopy
 
 G = [
     [170,  403, 446, 244, 257, 343,   2, 455,  68, 355],
@@ -27,6 +28,22 @@ def analyze(G, list):
         coast += G[list[i+1]][list[i]]
     return coast * 1.0 / totalCoast
 
+# обычный swap
+def swap(arr, i, j):
+    arr[i], arr[j] = arr[j], arr[i]
+
+def sort_by_coast(lst):
+    coast = []
+    for block in lst:
+        coast.append(analyze(G, block))
+    i = len(lst)
+    while i > 1:
+        for j in iter(range(i-1)):
+            if coast[j] < coast[j+1]:
+                swap(coast, j, j+1)
+                swap(lst, j, j+1)
+        i -= 1
+
 if __name__ == '__main__':
     # создаём несколько случайных списков
     lst = [[x for x in range(10)] for x in range(10)]
@@ -34,4 +51,21 @@ if __name__ == '__main__':
         # перемещаем список
         shuffle(block)
         # и выведем вместе с их процентами
-        print("{} with {:.4f}".format(block, analyze(G, block)))
+        print('[gen] {} with {:.4f}'.format(block, analyze(G, block)))
+    # сортируем список кандидатов по стоимости
+    sort_by_coast(lst)
+    print("----")
+    # выбираем самое лучшее
+    best = lst[0]
+    print('[bst] {} with {:.4f}'.format(best, analyze(G, best)))
+    # простой эволюционный алгоритм перестановки (мутации) нодов
+    for k in range(1, len(best)-1):
+        for i in range(len(best)-k):
+            gen = deepcopy(best)
+            swap(gen, i, i+k)
+            b1 = analyze(G, best)
+            b2 = analyze(G, gen)
+            if b2 > b1:
+                best = deepcopy(gen)
+    print("----")    
+    print('[res] {} with {:.4f}'.format(best, analyze(G, best)))
