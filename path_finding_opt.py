@@ -3,6 +3,9 @@
 from math import sqrt
 from copy import deepcopy
 
+# матрица корреспонденции (симметричная относительно главной диагонали)
+# диагональ -- количество людей в ноде
+# остальные -- количество людей в рёбрах
 G = [
     [170,  403, 446, 244, 257, 343,   2, 455,  68, 355],
     [403, 1170, 360, 299, 381, 162, 429, 259, 475, 483],
@@ -15,11 +18,14 @@ G = [
     [ 68,  475, 333, 183, 256, 478, 487, 367, 420, 212],
     [355,  483, 200, 100, 312,  55, 131,  92, 212, 250]
 ]
+# копируем для использования другими функциями
 W = deepcopy(G)
 
+# функция поиска нода с максимальным количество людей
 def find_max(A):
     max_a = A[0][0]
     n, m = 0, 0
+    # простой перебор по всему массиву
     for i in range(1, len(A)):
         for j in range(i+1, len(A)):
             if A[j][i] > max_a:
@@ -27,12 +33,14 @@ def find_max(A):
                 n, m = i, j
     return n, m
 
+# функция сравнения двух нодов
 def max_in_matrix(n, m, A):
     if A[n] > A[m]:
         return n, m
     else:
         return m, n
 
+# функция поиска максимума в списке
 def max_in_list(n, A, path):
     lst = list(map(lambda x: x[n], A))
     for i in range(len(lst)):
@@ -45,23 +53,30 @@ def max_in_list(n, A, path):
             k = i
     return k
 
+# функция расчёта процента перевозки людей
 def analyze(G, list):
+    # всего людей в нодах
     totalCoast = 0
+    # количество перевезённых
     coast = 0
     for x in range(len(G[0])):
         totalCoast += G[x][x]
     for i in range(0, len(list)-1):
-        sub = G[list[i+1]][list[i]]
-        coast += sub
+        coast += G[list[i+1]][list[i]]
     return coast * 1.0 / totalCoast
 
+# обычный swap
 def swap(arr, i, j):
     arr[i], arr[j] = arr[j], arr[i]
 
+# функция сортировки списка по координатам
 def sort_list(C):
+    # преобразуем в одно число
     lst = [x * y for x, y in C]
+    # список с номерами нодов
     abc = [x for x in range(0, len(lst))]
     i = len(C)
+    # сортируем пузырьком
     while i > 1:
         for j in xrange(i-1):
             if lst[j] > lst[j+1]:
@@ -78,15 +93,26 @@ if __name__ == '__main__':
     # преобразуем данные из файла к виду [[0, 1], ...]
     N = list(map(lambda x: [float(x.split(' ')[0]), float(x.split(' ')[1])], s))
     matrix_width = len(G[0])
+    # длина маршрута
+    length_of_routes = matrix_width - 1
+    # количество маршрутов -- половина от размера массива
+    number_of_routes = matrix_width // 2
     write_str = 'path = [\n'
-    for x in range(matrix_width//2):
+    # делаем number_of_routes маршрутов
+    for x in range(number_of_routes):
         path = []
+        # находим выходную ноду
         n, m = find_max(G)
+        # находим путь из неё
         n, m = max_in_matrix(n, m, W)
+        # добавляем в список
         path.append(n)
+        # отмечаем в массиве ноду и ребро
         G[n][n] = G[n][m] = -1
-        for i in range(matrix_width-1):
+        for i in range(length_of_routes):
+            # переходим к следующей наилучшей ноде
             n = max_in_list(n, G, path)
+            # добавляем в список
             path.append(n)
         print('[{:03d}] path = {}, with cost = {:0.04f}'.format(x, path, analyze(W, path)))
         write_str += '\t['
