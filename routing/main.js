@@ -22,7 +22,7 @@ var color_circle = [
 function CreateMarker(coord, label, color, id) {
     marker = L.circleMarker(coord, {
         color: color,
-        radius: Math.log2(centers.length) * 10,
+        radius: Math.log2(data[id][id]) * Math.exp(1),
         opacity: 0.7,
         fillOpacity: 0.5
     }).bindLabel(label[0], {noHide: true}).addTo(map).bindPopup(label[1]);
@@ -46,23 +46,27 @@ function draw() {
     layergroup = new L.LayerGroup();
     for (select = 0; select < route_count; select++) {
         if (counters[select] != 0 ) {
-            polyline = L.polyline(path[select], {
-                color: color_lines[select],
-                weight: 5, 
-                smoothFactor: 1
-            });
-            polylineDecorator = L.polylineDecorator(polyline, {
-                patterns: [{
-                    offset: 25,
-                    repeat: 100,
-                    symbol: L.Symbol.arrowHead({
-                        pixelSize: 15,
-                        pathOptions: {color: color_lines[select], fillOpacity: 1, weight: 0}
-                    })
-                }]
-            });
-            layergroup = L.layerGroup([polyline, polylineDecorator]);
-            layer.addLayer(layergroup);
+            for ( i = 0; i < path[select].length - 1; i++ ) {
+                j1 = path[select][i];
+                j2 = path[select][i+1];
+                polyline = L.polyline([[centers[j1][0], centers[j1][1]], [centers[j2][0], centers[j2][1]]], {
+                    color: color_lines[select],
+                    weight: Math.log10(data[j1][j2]) * 1.2, 
+                    smoothFactor: 1
+                }).bindLabel('flow: ' + data[j1][j2], {noHide: true});
+                polylineDecorator = L.polylineDecorator(polyline, {
+                    patterns: [{
+                        offset: 25,
+                        repeat: 100,
+                        symbol: L.Symbol.arrowHead({
+                            pixelSize: 10,
+                            pathOptions: {color: color_lines[select], fillOpacity: 1, weight: 0}
+                        })
+                    }]
+                });
+                layergroup = L.layerGroup([polyline, polylineDecorator]);
+                layer.addLayer(layergroup);
+            }
         }
     }
     map.addLayer(layer);
@@ -96,9 +100,9 @@ function draw_other() {
         j2 = parseInt(str[i+1]);
         polyline = L.polyline([[centers[j1][0], centers[j1][1]], [centers[j2][0], centers[j2][1]]], {
             color: oth_color,
-            weight: 5, 
+            weight: Math.log10(data[j1][j2]) * 1.2, 
             smoothFactor: 1
-        });
+        }).bindLabel('flow: ' + data[j1][j2], {noHide: true});
         polylineDecorator = L.polylineDecorator(polyline, {
             patterns: [{
                 offset: 25,
@@ -148,7 +152,7 @@ function onClick(e) {
             for (j in data[i]) {
                 if (i != j) {
                     polyline = L.polyline([[centers[i][0], centers[i][1]], [centers[j][0], centers[j][1]]],
-                        {color: 'blue', weight: 3}).bindLabel('flow: ' + data[i][j], {noHide: true});
+                        {color: 'blue', weight: Math.log10(data[i][j]) * 1.2}).bindLabel('flow: ' + data[i][j], {noHide: true});
                     polylineDecorator = L.polylineDecorator(polyline, {
                         patterns: [{
                             offset: 25,
