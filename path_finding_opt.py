@@ -115,18 +115,12 @@ if __name__ == '__main__':
             # добавляем в список
             path.append(n)
         print('[{:03d}] path = {}, with cost = {:0.04f}'.format(x, path, analyze(W, path)))
-        write_str += '\t['
-        for p in path:
-            write_str += '[{:0.06f}, {:0.06f}],\n\t '.format(N[p][0], N[p][1])
-        write_str = write_str[:-3] + '],\n'
+        write_str += '\t{},\n'.format(path)
     # найдём маршрут методом сортировки
     sort_lst = sort_list(N)
     print("[srt] path = {}, with cost = {:0.04f}".format(sort_lst, analyze(W, sort_lst)))
     # добавление маршрута методом сортировки
-    write_str += '\t['
-    for p in sort_lst:
-        write_str += '[{:0.06f}, {:0.06f}],\n\t '.format(N[p][0], N[p][1])
-    write_str = write_str[:-3] + '],\n'
+    write_str += '\t{},\n'.format(sort_lst)
     # запись маршрутов
     write_str = write_str[:-2] + '\n];'
     f = open('routing.js', 'w')
