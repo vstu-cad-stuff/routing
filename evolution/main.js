@@ -37,12 +37,25 @@ function draw() {
     draw_other();
 }
 
+function analyze(list) {
+    var totalCoast = 0;
+    var coast = 0;
+    for (i = 0; i < data.length; i++) {
+        totalCoast += data[i][i];
+    }
+    for (i = 0; i < list.length - 1; i++) {
+        coast += data[list[i+1]][list[i]]
+    }
+    return coast / totalCoast;
+}
+
 function draw_other() {
     str = routes[route_num];
     bf_status = route_num % 2;
     clear_other();
     document.getElementById('status').innerHTML = status_text[bf_status];
     document.getElementById('index').innerHTML = '#' + Math.floor( route_num / 2 );
+    document.getElementById('value').innerHTML = analyze(str);
     layer = new L.LayerGroup();
     layergroup = new L.LayerGroup();
     for ( i = 0; i < str.length - 1; i++ ) {
@@ -83,7 +96,7 @@ function prev_route() {
 }
 
 function next_route() {
-    if ( route_num < routes.length ) {
+    if ( route_num < routes.length-1 ) {
         route_num += 1;
     }
     draw_other();
