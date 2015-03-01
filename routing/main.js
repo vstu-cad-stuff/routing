@@ -8,9 +8,9 @@ var markers = [];
 var route_count = 6;
 var coords = [];
 var map = L.map('map').setView([48.7941, 44.8009], 13);
-    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
 var oth_color = '#7b36ec';
 var color_lines  = [
     '#ff0000', '#00BB00', '#9966cc', '#8db600', '#d2691e', '#423189'
@@ -19,10 +19,14 @@ var color_circle = [
     '#00308f', '#6666cc', '#5d8aa8', '#000000', '#003fc0',
     '#007ba7', '#0066ff', '#003153', '#909090', '#6495ed'
 ];
-var R = 0.005;
-for (i = 0; i <= 180.0; i += ( 180.0 / 32)) {
-    coords.push( new L.LatLng( R / 1.5 * ( Math.cos( 2 * i * Math.PI / 179.0 ) + 1 ), 
-                               R * Math.sin( 2 * i * Math.PI / 179.0 ) ) );
+
+function generate_circle() {
+    var R = 0.005;
+    coords.slice(0, coords.length);
+    for (i = 0; i <= 180.0; i += ( 180.0 / 32)) {
+        coords.push( new L.LatLng( R / 1.5 * ( -Math.cos( 2 * i * Math.PI / 179.0 ) + 1 ), 
+                                   R * Math.sin( 2 * i * Math.PI / 179.0 ) ) );
+    }
 }
 
 function sqrtn(x, n) {
@@ -176,7 +180,8 @@ function onClick(e) {
                 } else {
                     var coords_list = [];
                     for (k = 0; k < coords.length; k++ ) {
-                        coords_list.push( new L.LatLng( coords[k].lat + centers[i][0], coords[k].lng + centers[i][1] ) );
+                        coords_list.push( new L.LatLng( -coords[k].lat + centers[i][0], 
+                                                        coords[k].lng + centers[i][1] ) );
                     }
                     polyline = L.polyline(coords_list,
                         {color: 'orange', weight: Math.log10(data[i][j]) * 1.2}).bindLabel('flow: ' + data[i][j], {noHide: true});
@@ -200,4 +205,5 @@ function onClick(e) {
     map.addLayer(sec_layer);
 }
 
+generate_circle();
 draw();
