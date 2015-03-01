@@ -6,6 +6,7 @@ var layergroup;
 var counters = [0, 0, 0, 0, 0, 0];
 var markers = [];
 var route_count = 6;
+var coords = [];
 var map = L.map('map').setView([48.7941, 44.8009], 13);
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -18,11 +19,20 @@ var color_circle = [
     '#00308f', '#6666cc', '#5d8aa8', '#000000', '#003fc0',
     '#007ba7', '#0066ff', '#003153', '#909090', '#6495ed'
 ];
+var R = 0.005;
+for (i = 0; i <= 180.0; i += ( 180.0 / 32)) {
+    coords.push( new L.LatLng( R / 1.5 * ( Math.cos( 2 * i * Math.PI / 179.0 ) + 1 ), 
+                               R * Math.sin( 2 * i * Math.PI / 179.0 ) ) );
+}
+
+function sqrtn(x, n) {
+    return Math.exp((1/n)*Math.log(x));
+}
 
 function CreateMarker(coord, label, color, id) {
     marker = L.circleMarker(coord, {
         color: color,
-        radius: Math.log2(data[id][id]) * Math.exp(1),
+        radius: Math.log10(data[id][id]) * 1.5 * sqrtn(data[id][id], 4),
         opacity: 0.7,
         fillOpacity: 0.5
     }).bindLabel(label[0], {noHide: true}).addTo(map).bindPopup(label[1]);
@@ -163,9 +173,26 @@ function onClick(e) {
                             })
                         }]
                     });
-                    layergroup = L.layerGroup([polyline, polylineDecorator]);
-                    sec_layer.addLayer(layergroup);
+                } else {
+                    var coords_list = [];
+                    for (k = 0; k < coords.length; k++ ) {
+                        coords_list.push( new L.LatLng( coords[k].lat + centers[i][0], coords[k].lng + centers[i][1] ) );
+                    }
+                    polyline = L.polyline(coords_list,
+                        {color: 'orange', weight: Math.log10(data[i][j]) * 1.2}).bindLabel('flow: ' + data[i][j], {noHide: true});
+                    polylineDecorator = L.polylineDecorator(polyline, {
+                        patterns: [{
+                            offset: 10,
+                            repeat: 25,
+                            symbol: L.Symbol.arrowHead({
+                                pixelSize: 10,
+                                pathOptions: {color: 'orange', fillOpacity: 1, weight: 0}
+                            })
+                        }]
+                    });
                 }
+                layergroup = L.layerGroup([polyline, polylineDecorator]);
+                sec_layer.addLayer(layergroup);
             }
             break;
         }
