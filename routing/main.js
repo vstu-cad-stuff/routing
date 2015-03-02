@@ -61,8 +61,8 @@ function draw() {
     for (select = 0; select < route_count; select++) {
         if (counters[select] != 0 ) {
             for ( i = 0; i < path[select].length - 1; i++ ) {
-                j1 = path[select][i];
-                j2 = path[select][i+1];
+                j1 = path[select][i]-1;
+                j2 = path[select][i+1]-1;
                 polyline = L.polyline([[centers[j1][0], centers[j1][1]], [centers[j2][0], centers[j2][1]]], {
                     color: color_lines[select],
                     weight: Math.log10(data[j1][j2]) * 1.2, 
@@ -110,8 +110,8 @@ function draw_other() {
     oth_layer = new L.LayerGroup();
     layergroup = new L.LayerGroup();
     for ( i = 0; i < str.length - 1; i++ ) {
-        j1 = parseInt(str[i]);
-        j2 = parseInt(str[i+1]);
+        j1 = parseInt(str[i])-1;
+        j2 = parseInt(str[i+1])-1;
         polyline = L.polyline([[centers[j1][0], centers[j1][1]], [centers[j2][0], centers[j2][1]]], {
             color: oth_color,
             weight: Math.log10(data[j1][j2]) * 1.2, 
