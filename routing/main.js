@@ -50,8 +50,8 @@ function draw() {
         lat = centers[i][0];
         lon = centers[i][1];
         ctr = centers[i][2];
-        text = '<b>#' + ctr + '</b>; ' + lat + ', ' + lon + '<br>pop: ' + data[i][i];
-        label = '#' + i + '<br>' + data[i][i];
+        text = '<b>#' + (ctr+1) + '</b>; ' + lat + ', ' + lon + '<br>pop: ' + data[i][i];
+        label = '#' + (ctr+1) + '<br>' + data[i][i];
         markers[i] = CreateMarker([lat, lon], [label, text], color_circle[ctr], i);
         circles.addLayer(markers[i]);
     }
