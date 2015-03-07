@@ -1,5 +1,7 @@
 #!/bin/env python
 # -*- coding: utf-8 -*-
+# Метод имитации отжига на основе статьи http://habrahabr.ru/post/209610/
+# TODO: почитать http://habrahabr.ru/post/210942/
 import numpy as np
 from copy import deepcopy
 
@@ -37,7 +39,7 @@ def getDinstance(a, b):
     return rad * np.arctan2(y, x)
 
 # функция расчёта процента перевозки людей
-def analyze(G, list):
+def getEnergy(G, list):
     # суммарное расстояние
     distance = 0
     # количество перевезённых
@@ -51,43 +53,50 @@ def analyze(G, list):
 def swap(arr, i, j):
     arr[i], arr[j] = arr[j], arr[i]
 
-def sort_by_coast(lst):
-    coast = []
-    for block in lst:
-        coast.append(analyze(G, block))
-    i = len(lst)
-    while i > 1:
-        for j in iter(range(i-1)):
-            if coast[j] < coast[j+1]:
-                swap(coast, j, j+1)
-                swap(lst, j, j+1)
-        i -= 1
+def generateCandidate(lst):
+    i = j = 0
+    while i - j < 2:
+        i = np.random.randint(0, len(lst))
+        j = np.random.randint(0, len(lst))
+    i, j = min(i, j), max(i, j)
+    # разрезаем список на части (0, i) (i, j) (j, end)
+    # и инвертируем середину
+    return lst[0:i] + list(reversed(lst[i:j])) + lst[j:]
+
+# инкремент списка для человеко-читаемых списков
+def toHR(lst):
+    return [x + 1 for x in lst]
 
 if __name__ == '__main__':
+    # начальная и конечная температуры
+    initTemperature, endTemperature = 100, 1E-10
     # загружаем координаты
     coords = loadCoords('./data/points.txt')
-    # old code template
-    # создаём несколько случайных списков
-    # lst = [[x for x in range(10)] for x in range(1000)]
-    # for block in lst:
-    #     # перемещаем список
-    #     np.random.shuffle(block)
-    #     # и выведем вместе с их процентами
-    #     # print('[gen] {} with {:.4f}'.format(block, analyze(G, block)))
-    # # сортируем список кандидатов по стоимости
-    # sort_by_coast(lst)
-    # print("----")
-    # # выбираем самое лучшее
-    # best = lst[0]
-    # print('[bst] {} with {:.4f}'.format(best, analyze(G, best)))
-    # # простой эволюционный алгоритм перестановки (мутации) нодов
-    # for k in range(1, len(best)-1):
-    #     for i in range(len(best)-k):
-    #         gen = deepcopy(best)
-    #         swap(gen, i, i+k)
-    #         b1 = analyze(G, best)
-    #         b2 = analyze(G, gen)
-    #         if b2 > b1:
-    #             best = deepcopy(gen)
-    # print("----")    
-    # print('[res] {} with {:.4f}'.format(best, analyze(G, best)))
+    # создаём список обхода
+    current = [x for x in range(10)]
+    # перемешиваем его
+    np.random.shuffle(current)
+    currentEnergy = getEnergy(G, current)
+    print('before = {} with {}'.format(toHR(current), currentEnergy))
+    T = initTemperature
+    for i in range(1, 1000):
+        # генерируем кандидата
+        candidate = generateCandidate(current)
+        # находим его целевую функцию
+        candidateEnergy = getEnergy(G, candidate)
+        if candidateEnergy > currentEnergy:
+            # выбираем нашего кандидата
+            currentEnergy = candidateEnergy
+            current = candidate
+        else:
+            # иначе разыгрываем решение
+            p = np.exp(-(candidateEnergy-currentEnergy)/T)
+            if np.random.random() <= p:
+                currentEnergy = candidateEnergy
+                current = candidate
+        # понижаем температуру
+        T -= initTemperature * 0.1 / i
+        if T <= endTemperature:
+            # выходим если температура приблизилась к конечной
+            break
+    print(' after = {} with {}'.format(toHR(current), currentEnergy))
