@@ -44,27 +44,49 @@ function CreateMarker(coord, label, color, id) {
     return marker;
 }
 
+function getDinstance(a, b) {
+    var rad = 6372795; // радиус сферы (Земли)
+    var dlng = Math.abs(centers[a][1] - centers[b][1]) * Math.PI / 180.0;
+    var lat1 = centers[a][0] * Math.PI / 180.0;
+    var lat2 = centers[b][0] * Math.PI / 180.0;
+    var p1 = Math.cos(lat2), p2 = Math.sin(dlng), p3 = Math.cos(lat1);
+    var p4 = Math.sin(lat2), p5 = Math.sin(lat1), p6 = Math.cos(lat2);
+    var p7 = Math.cos(dlng);
+    var y = Math.sqrt(Math.pow(p1 * p2, 2) + Math.pow(p3 * p4 - p5 * p6 * p7, 2));
+    var x = p5 * p4 + p3 * p6 * p7;
+    return rad * Math.atan2(y, x);
+}
+
+function analyze(list) {
+    var distance = 0, coast = 0;
+    for (i = 0; i < list.length - 1; i++) {
+        distance += getDinstance(list[i], list[i+1]);
+        coast += data[list[i+1]][list[i]];
+    }
+    return coast / distance;
+}
+
 function draw() {
     circles = new L.FeatureGroup();
     for (i in centers) {
         lat = centers[i][0];
-        lon = centers[i][1];
+        lng = centers[i][1];
         ctr = centers[i][2];
-        text = '<b>#' + (ctr+1) + '</b>; ' + lat + ', ' + lon + '<br>pop: ' + data[i][i];
+        text = '<b>#' + (ctr+1) + '</b>; ' + lat + ', ' + lng + '<br>pop: ' + data[i][i];
         label = '#' + (ctr+1) + '<br>' + data[i][i];
-        markers[i] = CreateMarker([lat, lon], [label, text], color_circle[ctr], i);
+        markers[i] = CreateMarker([lat, lng], [label, text], color_circle[ctr], i);
         circles.addLayer(markers[i]);
     }
     map.addLayer(circles);
     layer = new L.LayerGroup();
     layergroup = new L.LayerGroup();
-    for (select = 0; select < route_count; select++) {
-        if (counters[select] != 0 ) {
-            for ( i = 0; i < path[select].length - 1; i++ ) {
-                j1 = path[select][i]-1;
-                j2 = path[select][i+1]-1;
+    for (var j = 0; j < route_count; j++) {
+        if (counters[j] != 0 ) {
+            for ( i = 0; i < path[j].length - 1; i++ ) {
+                var j1 = path[j][i];
+                var j2 = path[j][i+1];
                 polyline = L.polyline([[centers[j1][0], centers[j1][1]], [centers[j2][0], centers[j2][1]]], {
-                    color: color_lines[select],
+                    color: color_lines[j],
                     weight: Math.log10(data[j1][j2]) * 1.2, 
                     smoothFactor: 1
                 }).bindLabel('flow: ' + data[j1][j2], {noHide: true});
@@ -74,7 +96,7 @@ function draw() {
                         repeat: 100,
                         symbol: L.Symbol.arrowHead({
                             pixelSize: 10,
-                            pathOptions: {color: color_lines[select], fillOpacity: 1, weight: 0}
+                            pathOptions: {color: color_lines[j], fillOpacity: 1, weight: 0}
                         })
                     }]
                 });
@@ -105,13 +127,18 @@ function update_func() {
 }
 
 function draw_other() {
+    var route_list = [];
     str = document.getElementById("input_box").value.split(" ");
+    for ( i = 0; i < str.length; i++ ) {
+        route_list.push( parseInt( str[i] ) - 1 );
+    }
+    document.getElementById('value').innerHTML = analyze(route_list).toFixed(4);
     clear_other();
     oth_layer = new L.LayerGroup();
     layergroup = new L.LayerGroup();
-    for ( i = 0; i < str.length - 1; i++ ) {
-        j1 = parseInt(str[i])-1;
-        j2 = parseInt(str[i+1])-1;
+    for ( i = 0; i < route_list.length - 1; i++ ) {
+        j1 = route_list[i+0];
+        j2 = route_list[i+1];
         polyline = L.polyline([[centers[j1][0], centers[j1][1]], [centers[j2][0], centers[j2][1]]], {
             color: oth_color,
             weight: Math.log10(data[j1][j2]) * 1.2, 
