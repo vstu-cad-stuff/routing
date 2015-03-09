@@ -1,9 +1,6 @@
 #!/bin/env python
 # -*- coding: utf-8 -*-
-# Метод имитации отжига на основе статьи http://habrahabr.ru/post/209610/
-# TODO: почитать http://habrahabr.ru/post/210942/
 import numpy as np
-from copy import deepcopy
 
 G = [
     [170,  403, 446, 244, 257, 343,   2, 455,  68, 355],
@@ -67,19 +64,16 @@ def generateCandidate(lst):
 def toHR(lst):
     return [x + 1 for x in lst]
 
-if __name__ == '__main__':
-    # начальная и конечная температуры
-    initTemperature, endTemperature = 100, 1E-10
-    # загружаем координаты
-    coords = loadCoords('./data/points.txt')
+# метод имитации отжига на основе статьи http://habrahabr.ru/post/209610/
+def annealing(routes=10, genMax = 1000, matrix=G, initTemperature = 100, endTemperature = 1E-10):
     # создаём список обхода
-    current = [x for x in range(10)]
+    current = [x for x in range(routes)]
     # перемешиваем его
     np.random.shuffle(current)
     currentEnergy = getEnergy(G, current)
     print('before = {} with {}'.format(toHR(current), currentEnergy))
     T = initTemperature
-    for i in range(1, 1000):
+    for i in range(1, genMax):
         # генерируем кандидата
         candidate = generateCandidate(current)
         # находим его целевую функцию
@@ -90,13 +84,25 @@ if __name__ == '__main__':
             current = candidate
         else:
             # иначе разыгрываем решение
-            p = np.exp(-(candidateEnergy-currentEnergy)/T)
-            if np.random.random() <= p:
+            p1 = np.exp(-np.abs(candidateEnergy-currentEnergy)/T)
+            p2 = np.random.random()
+            if p2 <= p1:
                 currentEnergy = candidateEnergy
                 current = candidate
         # понижаем температуру
-        T -= initTemperature * 0.1 / i
+        T = initTemperature * 0.1 / i
         if T <= endTemperature:
             # выходим если температура приблизилась к конечной
             break
-    print(' after = {} with {}'.format(toHR(current), currentEnergy))
+    # преобразуем список кластеров к Human Readable формату
+    current = toHR(current)
+    print(' after = {} with {}'.format(current, currentEnergy))
+    return current
+
+if __name__ == '__main__':
+    # загружаем координаты кластеров
+    coords = loadCoords('./data/points.txt')
+    print(' > simulated annealing')
+    print('----------------------------------------------------------------')
+    annealing(10, 1000, G, 100, 1E-20)
+    print('----------------------------------------------------------------')
