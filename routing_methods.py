@@ -65,11 +65,12 @@ def toHR(lst):
     return [x + 1 for x in lst]
 
 # метод имитации отжига на основе статьи http://habrahabr.ru/post/209610/
-def annealing(routes=10, genMax = 1000, matrix=G, initTemperature = 100, endTemperature = 1E-10):
+def annealing(routeLength=10, genMax = 1000, matrix=G, initTemperature = 100, endTemperature = 1E-10):
     # создаём список обхода
-    current = [x for x in range(routes)]
+    current = [x for x in range(routeLength)]
     # перемешиваем его
     np.random.shuffle(current)
+    # найдём его энергию
     currentEnergy = getEnergy(G, current)
     print('before = {} with {}'.format(toHR(current), currentEnergy))
     T = initTemperature
