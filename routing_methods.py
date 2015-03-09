@@ -85,7 +85,7 @@ def annealing(routeLength=10, genMax = 1000, matrix=G, initTemperature = 100, en
             current = candidate
         else:
             # иначе разыгрываем решение
-            p1 = np.exp(-np.abs(candidateEnergy-currentEnergy)/T)
+            p1 = np.exp(-(currentEnergy-candidateEnergy)/T)
             p2 = np.random.random()
             if p2 <= p1:
                 currentEnergy = candidateEnergy
