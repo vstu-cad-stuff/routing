@@ -20,15 +20,6 @@ var color_circle = [
     '#007ba7', '#0066ff', '#003153', '#909090', '#6495ed'
 ];
 
-function generate_circle() {
-    var R = 0.005;
-    coords.slice(0, coords.length);
-    for (i = 0; i <= 180.0; i += ( 180.0 / 32)) {
-        coords.push( new L.LatLng( R / 1.5 * ( -Math.cos( 2 * i * Math.PI / 179.0 ) + 1 ), 
-                                   R * Math.sin( 2 * i * Math.PI / 179.0 ) ) );
-    }
-}
-
 function sqrtn(x, n) {
     return Math.exp((1/n)*Math.log(x));
 }
@@ -87,7 +78,7 @@ function draw() {
                 var j2 = path[j][i+1];
                 polyline = L.polyline([[centers[j1][0], centers[j1][1]], [centers[j2][0], centers[j2][1]]], {
                     color: color_lines[j],
-                    weight: Math.log10(data[j1][j2]) * 1.2, 
+                    weight: Math.log10(data[j1][j2]) * sqrtn(data[j1][j2], 4), 
                     smoothFactor: 1
                 }).bindLabel('flow: ' + data[j1][j2], {noHide: true});
                 polylineDecorator = L.polylineDecorator(polyline, {
@@ -141,7 +132,7 @@ function draw_other() {
         j2 = route_list[i+1];
         polyline = L.polyline([[centers[j1][0], centers[j1][1]], [centers[j2][0], centers[j2][1]]], {
             color: oth_color,
-            weight: Math.log10(data[j1][j2]) * 1.2, 
+            weight: Math.log10(data[j1][j2]) * sqrtn(data[j1][j2], 4), 
             smoothFactor: 1
         }).bindLabel('flow: ' + data[j1][j2], {noHide: true});
         polylineDecorator = L.polylineDecorator(polyline, {
@@ -183,6 +174,7 @@ function clear_other() {
 }
 
 function onClick(e) {
+    var marker;
     if (map.hasLayer(sec_layer)) {
         map.removeLayer(sec_layer);
     }
@@ -192,39 +184,34 @@ function onClick(e) {
         if (e.target == markers[i]) {
             for (j in data[i]) {
                 if (i != j) {
-                    polyline = L.polyline([[centers[i][0], centers[i][1]], [centers[j][0], centers[j][1]]],
-                        {color: 'blue', weight: Math.log10(data[i][j]) * 1.2}).bindLabel('flow: ' + data[i][j], {noHide: true});
+                    polyline = L.polyline([[centers[i][0], centers[i][1]], [centers[j][0], centers[j][1]]],{
+                        color: 'blue', weight: Math.log10(data[i][j]) * sqrtn(data[i][j], 4)
+                    }).bindLabel('flow: ' + data[i][j], {noHide: true});
                     polylineDecorator = L.polylineDecorator(polyline, {
                         patterns: [{
                             offset: 25,
                             repeat: 100,
                             symbol: L.Symbol.arrowHead({
-                                pixelSize: 10,
+                                pixelSize: 12,
                                 pathOptions: {color: 'blue', fillOpacity: 1, weight: 0}
                             })
                         }]
                     });
+                    layergroup = L.layerGroup([polyline, polylineDecorator]);
+                    sec_layer.addLayer(layergroup);
                 } else {
-                    var coords_list = [];
-                    for (k = 0; k < coords.length; k++ ) {
-                        coords_list.push( new L.LatLng( -coords[k].lat + centers[i][0], 
-                                                        coords[k].lng + centers[i][1] ) );
-                    }
-                    polyline = L.polyline(coords_list,
-                        {color: 'orange', weight: Math.log10(data[i][j]) * 1.2}).bindLabel('flow: ' + data[i][j], {noHide: true});
-                    polylineDecorator = L.polylineDecorator(polyline, {
-                        patterns: [{
-                            offset: 10,
-                            repeat: 25,
-                            symbol: L.Symbol.arrowHead({
-                                pixelSize: 10,
-                                pathOptions: {color: 'orange', fillOpacity: 1, weight: 0}
-                            })
-                        }]
+                    var myIcon = L.icon({
+                        iconUrl: 'images/arrows.png',
+                        iconSize: [48, 48],
+                        iconAnchor: [48, 24],
+                        labelAnchor: [0, -26] 
                     });
+                    marker = L.marker([centers[i][0], centers[i][1]], {
+                        icon: myIcon
+                    }).bindLabel('inside: ' + data[i][j], {direction: left, offset: [50, -15]});
+                    sec_layer.addLayer(marker);
                 }
-                layergroup = L.layerGroup([polyline, polylineDecorator]);
-                sec_layer.addLayer(layergroup);
+
             }
             break;
         }
@@ -232,5 +219,4 @@ function onClick(e) {
     map.addLayer(sec_layer);
 }
 
-generate_circle();
 draw();
