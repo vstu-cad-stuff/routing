@@ -58,7 +58,7 @@ def generateCandidate(lst):
         j = np.random.randint(0, len(lst))
     i, j = min(i, j), max(i, j)
     # cut into parts lst (0, i) [i, j] (j, end)
-    # and inver middle
+    # and invert middle
     return lst[0:i] + list(reversed(lst[i:j])) + lst[j:]
 
 # convert lst to Human Readable format
