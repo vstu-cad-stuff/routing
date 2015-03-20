@@ -1,5 +1,4 @@
 #!/bin/env python
-# -*- coding: utf-8 -*-
 import numpy as np
 
 G = [
@@ -16,14 +15,15 @@ G = [
 ]
 coords = []
 
-# функция загрузки координат кластеров
+# loading coordinates of clusters from file
 def loadCoords(file):
     f = open(file, 'r')
     s = f.read().splitlines()
     f.close()
+    # convert to [[latitude, longitude], ...] format
     return list(map(lambda x: [float(x.split(' ')[0]), float(x.split(' ')[1])], s))
 
-# функция расчёта расстояния по http://en.wikipedia.org/wiki/Great-circle_distance
+# calculating distance by http://en.wikipedia.org/wiki/Great-circle_distance
 def getDinstance(a, b):
     rad = 6372795 # радиус сферы (Земли)
     dlng = abs(coords[a][1] - coords[b][1]) * np.pi / 180.0
@@ -35,73 +35,74 @@ def getDinstance(a, b):
     x = p5 * p4 + p3 * p6 * p7
     return rad * np.arctan2(y, x)
 
-# функция расчёта процента перевозки людей
+# calculating goal function
 def getEnergy(G, list):
-    # суммарное расстояние
+    # total distnace
     distance = 0
-    # количество перевезённых
+    # number of transported people
     coast = 0
     for i in range(0, len(list)-1):
         distance += getDinstance(list[i], list[i+1])
         coast += G[list[i+1]][list[i]]
     return coast * 1.0 / distance
 
-# обычный swap
+# swap function
 def swap(arr, i, j):
     arr[i], arr[j] = arr[j], arr[i]
 
+# candidate solutions generator
 def generateCandidate(lst):
     i = j = 0
     while i - j < 2:
         i = np.random.randint(0, len(lst))
         j = np.random.randint(0, len(lst))
     i, j = min(i, j), max(i, j)
-    # разрезаем список на части (0, i) (i, j) (j, end)
-    # и инвертируем середину
+    # cut into parts lst (0, i) [i, j] (j, end)
+    # and inver middle
     return lst[0:i] + list(reversed(lst[i:j])) + lst[j:]
 
-# инкремент списка для человеко-читаемых списков
+# convert lst to Human Readable format
 def toHR(lst):
     return [x + 1 for x in lst]
 
-# метод имитации отжига на основе статьи http://habrahabr.ru/post/209610/
+# Simulated annealing (based on article http://habrahabr.ru/post/209610/)
 def annealing(routeLength=10, genMax = 1000, matrix=G, initTemperature = 100, endTemperature = 1E-10):
-    # создаём список обхода
+    # create bypass list
     current = [x for x in range(routeLength)]
-    # перемешиваем его
+    # shuffle it
     np.random.shuffle(current)
-    # найдём его энергию
+    # and get goal function value
     currentEnergy = getEnergy(G, current)
     print('before = {} with {}'.format(toHR(current), currentEnergy))
     T = initTemperature
     for i in range(1, genMax):
-        # генерируем кандидата
+        # generate candidate solution
         candidate = generateCandidate(current)
-        # находим его целевую функцию
+        # and get goal function value
         candidateEnergy = getEnergy(G, candidate)
         if candidateEnergy > currentEnergy:
-            # выбираем нашего кандидата
+            # select the candidate
             currentEnergy = candidateEnergy
             current = candidate
         else:
-            # иначе разыгрываем решение
+            # probabilistic choice decisions
             p1 = np.exp(-(currentEnergy-candidateEnergy)/T)
             p2 = np.random.random()
             if p2 <= p1:
                 currentEnergy = candidateEnergy
                 current = candidate
-        # понижаем температуру
+        # lower the temperature
         T = initTemperature * 0.1 / i
         if T <= endTemperature:
-            # выходим если температура приблизилась к конечной
+            # go out when the temperature approached the final
             break
-    # преобразуем список кластеров к Human Readable формату
+    # convert 'current' to Human Readable format
     current = toHR(current)
     print(' after = {} with {}'.format(current, currentEnergy))
     return current
 
 if __name__ == '__main__':
-    # загружаем координаты кластеров
+    # load cluster coords
     coords = loadCoords('./data/points.txt')
     print(' > simulated annealing')
     print('----------------------------------------------------------------')
