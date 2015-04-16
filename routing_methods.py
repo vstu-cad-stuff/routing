@@ -25,7 +25,7 @@ def loadCoords(file):
 
 # calculating distance by http://en.wikipedia.org/wiki/Great-circle_distance
 def getDinstance(a, b):
-    rad = 6372795 # радиус сферы (Земли)
+    rad = 6372795 # sphere radius (Earth)
     dlng = abs(coords[a][1] - coords[b][1]) * np.pi / 180.0
     lat1, lat2 = coords[a][0] * np.pi / 180.0, coords[b][0] * np.pi / 180.0
     p1, p2, p3 = np.cos(lat2), np.sin(dlng), np.cos(lat1)
