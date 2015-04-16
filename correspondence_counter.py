@@ -46,8 +46,10 @@ def writeToFile(filename, data, prefix=''):
     f = open(filename, 'w')
     if prefix != '':
         f.write(prefix)
+    f.write('[')
     for item in data:
-        f.write('{}\n'.format(item))
+        f.write('{},\n'.format(item))
+    f.write(']')
     f.close()
 
 if __name__ == '__main__':
