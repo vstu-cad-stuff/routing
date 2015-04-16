@@ -66,7 +66,7 @@ def toHR(lst):
     return [x + 1 for x in lst]
 
 # Simulated annealing (based on article http://habrahabr.ru/post/209610/)
-def annealing(routeLength=10, genMax = 1000, matrix=G, initTemperature = 100, endTemperature = 1E-10):
+def annealing(routeLength=10, genMax=1000, matrix=G, initTemperature=100, endTemperature=1E-10):
     # create bypass list
     current = [x for x in range(routeLength)]
     # shuffle it
