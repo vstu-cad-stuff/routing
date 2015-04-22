@@ -120,7 +120,11 @@ function onClick(e) {
         if (e.target == markers[i]) {
             for (j in G[i]) {
                 if (i != j) {
-                    polyline = L.polyline([[centers[i][0], centers[i][1]], [centers[j][0], centers[j][1]]],{
+                    c1 = centers[j][0]; c2 = centers[j][1];
+                    if (c1 == 0.0 && c2 == 0) {
+                        continue;
+                    }
+                    polyline = L.polyline([[centers[i][0], centers[i][1]], [c1, c2]],{
                         color: 'blue', weight: Math.log10(G[i][j]) * sqrtn(G[i][j], 4)
                     }).bindLabel('flow: ' + G[i][j], {noHide: true});
                     polylineDecorator = L.polylineDecorator(polyline, {
