@@ -14,16 +14,15 @@ function loadData() {
             value = radioButton[i].value;
         }
     }
-    var loadStr = './cluster'+value+'/data.js';
-    include(loadStr);
+    include('./cluster'+value+'/centers.js');
+    include('./cluster'+value+'/data.js');
     if ( reload != 0 ) {
-        location.reload();
         reload = 0;
+        location.reload();
     } else {
         reload++;
     }
 }
 
-include('./centers.js');
 loadData();
 include('./main.js');
