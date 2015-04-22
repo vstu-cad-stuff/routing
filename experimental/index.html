@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
+    <script src="http://rawgit.com/bbecquet/Leaflet.PolylineDecorator/master/src/L.LineUtil.PolylineDecorator.js"></script>
+    <script src="http://rawgit.com/bbecquet/Leaflet.PolylineDecorator/master/src/L.Symbol.js"></script>
+    <script src="http://rawgit.com/bbecquet/Leaflet.PolylineDecorator/master/src/L.PolylineDecorator.js"></script>
+    <script src="http://leaflet.github.io/Leaflet.label/leaflet.label.js"></script>
+    <link rel="stylesheet" href="https://leaflet.github.io/Leaflet.label/leaflet.css" />
+    <link rel="stylesheet" href="https://leaflet.github.io/Leaflet.label/leaflet.label.css"/>
+    <style>
+        body { margin:0; padding:0; font-family: arial; }
+        #map { position:absolute; left: 10%; top:0; bottom:0; width:90%; }
+        #left { position: absolute; left: 0; top: 35%; width: 10%; height: 50%; text-align:center; }
+        #larrow, #rarrow, #time { margin-right: 5px; }
+        #larrow, #rarrow { font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <div id="left">
+      <hr>Select cluster count:<br>
+      <input type="radio" name="cluster_count" value="100" onClick="loadData()" checked> 100
+      <input type="radio" name="cluster_count" value="150" onClick="loadData()"> 150<br>
+      <input type="radio" name="cluster_count" value="200" onClick="loadData()"> 200
+      <input type="radio" name="cluster_count" value="300" onClick="loadData()"> 300<br>
+      <hr>Remove:<input type="button" onClick="clear_flow()" value="flows"/>
+      <hr>Input other route:
+      <input type="text" id="input_box"/>
+      <input type="button" onClick="draw_other()" value="Draw"/>
+      <input type="button" onClick="clear_other()" value="Remove"/><br>
+      Value: <b><label id="value"></label></b><hr>
+    </div>
+    <div id="map"></div>
+    <script src="loader.js"></script>
+  </body>
+</html>
