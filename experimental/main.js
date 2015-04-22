@@ -78,7 +78,7 @@ function draw_other() {
         j2 = route_list[i+1];
         polyline = L.polyline([[centers[j1][0], centers[j1][1]], [centers[j2][0], centers[j2][1]]], {
             color: oth_color,
-            weight: Math.log10(G[j1][j2]) * sqrtn(G[j1][j2], 4), 
+            weight: 1.5 * Math.log10(G[j1][j2]) * sqrtn(G[j1][j2], 4), 
             smoothFactor: 1
         }).bindLabel('flow: ' + G[j1][j2], {noHide: true});
         polylineDecorator = L.polylineDecorator(polyline, {
