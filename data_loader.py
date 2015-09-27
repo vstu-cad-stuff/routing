@@ -1,5 +1,5 @@
-import numpy as np
 from re import sub, compile
+import numpy as np
 
 # compiled regex: select all chars ignore 0-9 and .
 non_numeric = compile(r'[^\d.]+')
