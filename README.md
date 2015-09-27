@@ -11,6 +11,6 @@ Routing Project
 * [data/points](./data/points.txt): координаты центров кластеров
 
 ### Новый функционал
-* [main_algorythm.py](main_algorythm.py): главный модуль по построению маршрута
+* [main_algorithm.py](main_algorithm.py): главный модуль по построению маршрута
 * [data_loader.py](data_loader.py): модуль по загрузке данных из файлов
-* [greedy_algorythm.py](greedy_algorythm.py): модуль реализующий 'жадный' алгоритм
+* [greedy_algorythm.py](greedy_algorithm.py): модуль реализующий 'жадный' алгоритм

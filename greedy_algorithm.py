@@ -3,7 +3,7 @@
 #   A -- correspondence matrix
 # output:
 #   n, m -- node index
-def find_max(A):
+def findMax(A):
     max_a = A[0][0]
     n, m = 0, 0
     # a simple search on the entire array
@@ -22,7 +22,7 @@ def find_max(A):
 #   A -- correspondence matrix
 # output:
 #   a sequence of nodes
-def max_in_matrix(n, m, A):
+def maxInMatrix(n, m, A):
     if A[n] > A[m]:
         return n, m
     else:
@@ -34,7 +34,7 @@ def max_in_matrix(n, m, A):
 #   n -- node index
 #   A -- correspondence matrix
 #   path -- number of people in clusters (list)
-def max_in_list(n, A, path):
+def maxInList(n, A, path):
     lst = list(map(lambda x: x[n], A))
     for i in range(len(lst)):
         if i in path:
@@ -47,12 +47,12 @@ def max_in_list(n, A, path):
     return k
 
 
-# function: greedy algorythm
+# function: greedy algorithm
 # input:
 #   matrix -- correspondence matrix
 # output:
 #   path -- clusters traversal sequence (list)
-def greedy_init(matrix):
+def greedyInit(matrix):
     from copy import deepcopy
     Node = []
     # the maximum length of the route - the size of the matrix
@@ -64,16 +64,16 @@ def greedy_init(matrix):
     W = deepcopy(matrix)
     path = []
     # find output node
-    n, m = find_max(matrix)
+    n, m = findMax(matrix)
     # find a way out of it
-    n, m = max_in_matrix(n, m, Node)
+    n, m = maxInMatrix(n, m, Node)
     # append to result list
     path.append(n)
     # note in the array node and edge
     Node[n] = W[n][m] = -1
     for i in range(length_of_route):
         # go to the next best node
-        n = max_in_list(n, matrix, path)
+        n = maxInList(n, matrix, path)
         # if peaks begin to repeat, then exit the loop
         if len(path) > 2 and path[-1] == path[-2] and path[-1] == n:
             # and take out the repetition from the list

@@ -2,7 +2,7 @@ from re import sub, compile
 import numpy as np
 
 # compiled regex: select all chars ignore 0-9 and .
-non_numeric = compile(r'[^\d.]+')
+nonNumeric = compile(r'[^\d.]+')
 
 
 # function: read data from file to string
@@ -28,12 +28,12 @@ class Coords:
     #   raw_points -- string with people data (coords and cluster)
     # output:
     #   None
-    def load_raw(self, raw_points):
+    def loadRaw(self, raw_points):
         for string in raw_points:
             data = string.split(',')
             if len(data) < 4:
                 continue
-            index = int(non_numeric.sub('', data[3]))
+            index = int(nonNumeric.sub('', data[3]))
             self.max_cluster = max(index, self.max_cluster)
             self.append(float(data[1]), float(data[2]), index)
 
@@ -70,7 +70,7 @@ class Clusters:
     #   raw_ways -- movement data
     # output:
     #   None
-    def calculate_matrix(self, coords, raw_ways):
+    def calculateMatrix(self, coords, raw_ways):
         # init square matrix with max_cluster size
         self.matrix = np.zeros((self.coords.max_cluster+1, self.coords.max_cluster+1))
         # iterate ways data
@@ -80,10 +80,10 @@ class Clusters:
             if len(data) < 5:
                 continue
             # parse & convert to float
-            p1 = float(non_numeric.sub('', data[1]))
-            p2 = float(non_numeric.sub('', data[2]))
-            p3 = float(non_numeric.sub('', data[3]))
-            p4 = float(non_numeric.sub('', data[4]))
+            p1 = float(nonNumeric.sub('', data[1]))
+            p2 = float(nonNumeric.sub('', data[2]))
+            p3 = float(nonNumeric.sub('', data[3]))
+            p4 = float(nonNumeric.sub('', data[4]))
             # find cluster_id by coords
             i, j = self.coords.find(p1, p2), self.coords.find(p3, p4)
             # increment cluster matrix
@@ -98,11 +98,11 @@ class Clusters:
     #   ways   -- filename with people ways
     # output:
     #   numpy array -- correspondence matrix
-    def generate_matrix(self, points, ways):
+    def generateMatrix(self, points, ways):
         # load raw data from points file
-        self.coords.load_raw(readFile(points))
+        self.coords.loadRaw(readFile(points))
         # and calculate correspondence matrix
-        self.calculate_matrix(self.coords, readFile(ways))
+        self.calculateMatrix(self.coords, readFile(ways))
         return self.matrix
 
     # function: load cluster data from file
@@ -110,13 +110,13 @@ class Clusters:
     #   file -- cluster coord data
     # output:
     #   dictionary[cluster_id] = [lat, lon]
-    def load_clusters(self, file):
+    def loadClusters(self, file):
         data = readFile(file)[2].split(',')
         index = 0
         while index != len(data) - 3:
-            lat = float(non_numeric.sub('', data[index+0]))
-            lon = float(non_numeric.sub('', data[index+1]))
-            cluster = int(non_numeric.sub('', data[index+2]))
+            lat = float(nonNumeric.sub('', data[index+0]))
+            lon = float(nonNumeric.sub('', data[index+1]))
+            cluster = int(nonNumeric.sub('', data[index+2]))
             self.clusters[cluster] = [lat, lon]
             index += 3
         return self.clusters
