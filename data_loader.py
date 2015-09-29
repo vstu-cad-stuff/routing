@@ -127,7 +127,7 @@ class Clusters:
     #   b -- second point (cluster_id)
     # output:
     #   distance in sphere
-    def getDinstance(self, a, b):
+    def getDistance(self, a, b):
         # sphere radius (Earth)
         rad = 6372795
         dlng = abs(self.clusters[a][1] - self.clusters[b][1]) * np.pi / 180.0
@@ -147,5 +147,5 @@ class Clusters:
     def getRouteLength(self, route):
         distance = 0
         for index in range(len(route)-1):
-            distance += self.getDinstance(route[index+0], route[index+1])
+            distance += self.getDistance(route[index+0], route[index+1])
         return distance
