@@ -120,3 +120,32 @@ class Clusters:
             self.clusters[cluster] = [lat, lon]
             index += 3
         return self.clusters
+
+    # function: calculate distance from a to b
+    # input:
+    #   a -- first point (cluster_id)
+    #   b -- second point (cluster_id)
+    # output:
+    #   distance in sphere
+    def getDinstance(self, a, b):
+        # sphere radius (Earth)
+        rad = 6372795
+        dlng = abs(self.clusters[a][1] - self.clusters[b][1]) * np.pi / 180.0
+        lat1, lat2 = self.clusters[a][0] * np.pi / 180.0, self.clusters[b][0] * np.pi / 180.0
+        p1, p2, p3 = np.cos(lat2), np.sin(dlng), np.cos(lat1)
+        p4, p5, p6 = np.sin(lat2), np.sin(lat1), np.cos(lat2)
+        p7 = np.cos(dlng)
+        y = np.sqrt(np.power(p1 * p2, 2) + np.power(p3 * p4 - p5 * p6 * p7, 2))
+        x = p5 * p4 + p3 * p6 * p7
+        return rad * np.arctan2(y, x)
+
+    # function: calculate route length from cluster_id list
+    # input:
+    #   route -- array of cluster_id
+    # ouput:
+    #   route length
+    def getRouteLength(self, route):
+        distance = 0
+        for index in range(len(route)-1):
+            distance += self.getDinstance(route[index+0], route[index+1])
+        return distance
