@@ -1,73 +1,7 @@
 from data_loader import Clusters
 from greedy_algorithm import greedyInit
-
-
-# function: convert list to human readable format
-# input:
-#   lst -- array list
-# output:
-#   python list
-def toHR(lst):
-    return list(map(lambda x: x+1, lst))
-
-
-# funciont: separation of the array with count parts
-# input:
-#   array -- input array
-#   count -- parts count
-# output:
-#   python list
-def toChunk(array, count):
-    chunk_len = len(array) // count
-    rest_count = len(array) % count
-    chunks = []
-    for i in range(count):
-        chunk = array[:chunk_len]
-        array = array[chunk_len:]
-        if rest_count and array:
-            chunk.append(array.pop(0))
-            rest_count -= 1
-        chunks.append(chunk)
-    return chunks
-
-
-# function: routes rating function
-# input:
-#   data  -- cluster data class (correspondence matrix, coordinates)
-#   routes -- route network
-# output:
-#   (distance, )
-def routeRating(data, routes):
-    total_distance = 0
-    for route in routes:
-        total_distance += data.getRouteLength(route)
-    pass
-
-
-# function: swap
-# input:
-#   arr -- python list
-#   i   -- first index
-#   j   -- second index
-# output:
-#   None
-def swap(arr, i, j):
-    arr[i], arr[j] = arr[j], arr[i]
-
-
-# function: sorting route by distance
-# input:
-#   data  -- cluster data class (correspondence matrix, coordinates)
-#   route -- list of cluster_id
-# output:
-#   route -- sorted list of cluster_id
-def sortByDistance(data, route):
-    for index in range(len(route)-3):
-        p1 = data.getDistance(route[index+0], route[index+1])
-        p2 = data.getDistance(route[index+0], route[index+2])
-        p3 = data.getDistance(route[index+1], route[index+2])
-        if p1 + p2 > p2 + p3:
-            swap(route, index+1, index+2)
+import auxiliary as ax
+import numpy as np
 
 
 # function: mutation
@@ -78,10 +12,13 @@ def sortByDistance(data, route):
 # output:
 #   route -- route list after mutation
 def mutation(data, route, parts=2):
-    split_route = toChunk(route, parts)
+    split_route = ax.toChunk(route, parts)
     new_route = []
     for item in split_route:
-        sortByDistance(data, item)
+        if np.random.random() >= 0.5:
+            ax.sortByMetric(data.getDistance, item)
+        else:
+            ax.sortByMetric(data.getPeople, item)
         new_route += item
     return new_route
 
@@ -93,10 +30,15 @@ def mutation(data, route, parts=2):
 # output:
 #   route  -- route list after crossover
 def crossover(data, route):
-    from math import sqrt
-    people = [data.matrix[i][i] for i in route]
-    # insert code
-    return route
+    peoples = list(map(lambda x: int(data.getPeople(x, x)), route))
+    new_route = []
+    ax.funcRemoveAppend(max, peoples, route, new_route)
+    i = 0
+    while len(route) > 0:
+        distances = list(map(lambda x: data.getDistance(new_route[i], x), route))
+        ax.funcRemoveAppend(min, distances, route, new_route)
+        i += 1
+    return new_route
 
 
 # function: generation of the route network, based on the greedy algorithm
@@ -107,12 +49,15 @@ def crossover(data, route):
 #   python list of list -- [[route1], [route2], ...]
 def buildRoutes(data, route):
     route_count = 5
-    routes = toChunk(route, route_count)
+    routes = ax.toChunk(route, route_count)
     for index in range(len(routes)):
-        print('[{}] before = {}'.format(index, toHR(routes[index])))
-        result = mutation(data, routes[index])
-        print('[{}]  after = {}'.format(index, toHR(result)))
-    # insert code
+        print('[{}] before = {}'.format(index, ax.toHR(routes[index])))
+        if np.random.random() >= 0.5:
+            result = mutation(data, routes[index])
+        else:
+            result = crossover(data, routes[index])
+        print('[{}]  after = {}'.format(index, ax.toHR(result)))
+    return routes
 
 if __name__ == '__main__':
     data = Clusters()

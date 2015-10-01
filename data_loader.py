@@ -139,6 +139,15 @@ class Clusters:
         x = p5 * p4 + p3 * p6 * p7
         return rad * np.arctan2(y, x)
 
+    # function: calculate people count from a to b
+    # input:
+    #   a -- first point (cluster_id)
+    #   b -- second point (cluster_id)
+    # output:
+    #   people count
+    def getPeople(self, a, b):
+        return self.matrix[a][b]
+
     # function: calculate route length from cluster_id list
     # input:
     #   route -- array of cluster_id

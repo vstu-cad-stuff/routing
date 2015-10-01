@@ -10,7 +10,10 @@ Routing Project
 * [routing_methods.py](src/routing_methods.py): реализация методов коммивояжёра для обхода кластеров (пока только метод отжига)
 * [data/points](./data/points.txt): координаты центров кластеров
 
+----
+
 ### Новый функционал
 * [main_algorithm.py](main_algorithm.py): главный модуль по построению маршрута
+* [auxiliary.py](auxiliary.py): модуль со вспомогательными функциями
 * [data_loader.py](data_loader.py): модуль по загрузке данных из файлов
 * [greedy_algorythm.py](greedy_algorithm.py): модуль реализующий 'жадный' алгоритм
