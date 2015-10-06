@@ -30,13 +30,15 @@ def mutation(data, route, parts=2):
 # output:
 #   route  -- route list after crossover
 def crossover(data, route):
-    peoples = list(map(lambda x: int(data.getPeople(x, x)), route))
+    from copy import deepcopy
+    old_route = deepcopy(route)
+    peoples = list(map(lambda x: int(data.getPeople(x, x)), old_route))
     new_route = []
-    ax.funcRemoveAppend(max, peoples, route, new_route)
+    ax.funcRemoveAppend(max, peoples, old_route, new_route)
     i = 0
-    while len(route) > 0:
-        distances = list(map(lambda x: data.getDistance(new_route[i], x), route))
-        ax.funcRemoveAppend(min, distances, route, new_route)
+    while len(old_route) > 0:
+        distances = list(map(lambda x: data.getDistance(new_route[i], x), old_route))
+        ax.funcRemoveAppend(min, distances, old_route, new_route)
         i += 1
     return new_route
 
@@ -49,14 +51,21 @@ def crossover(data, route):
 #   python list of list -- [[route1], [route2], ...]
 def buildRoutes(data, route):
     route_count = 5
+    iteration_count = 20
     routes = ax.toChunk(route, route_count)
-    for index in range(len(routes)):
-        print('[{}] before = {}'.format(index, ax.toHR(routes[index])))
-        if np.random.random() >= 0.5:
-            result = mutation(data, routes[index])
-        else:
-            result = crossover(data, routes[index])
-        print('[{}]  after = {}'.format(index, ax.toHR(result)))
+    for iteration in range(iteration_count):
+        rate_before = ax.routeRating(data, routes)
+        print('iteration {} --> {}'.format(iteration, rate_before))
+        new_routes = []
+        for index in range(len(routes)):
+            if np.random.random() >= 0.5:
+                result = mutation(data, routes[index])
+            else:
+                result = crossover(data, routes[index])
+            new_routes.append(result)
+        rate_after = ax.routeRating(data, new_routes)
+        if rate_after < rate_before:
+            routes = new_routes
     return routes
 
 if __name__ == '__main__':

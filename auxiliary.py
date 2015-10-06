@@ -37,7 +37,7 @@ def routeRating(data, routes):
     total_distance = 0
     for route in routes:
         total_distance += data.getRouteLength(route)
-    pass
+    return total_distance / len(routes)
 
 
 # function: swap two element
