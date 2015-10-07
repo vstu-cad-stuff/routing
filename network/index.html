@@ -7,17 +7,24 @@
     <script src="js/L.Symbol.js"></script>
     <script src="js/L.PolylineDecorator.js"></script>
     <script src="js/leaflet.label.js"></script>
-    <script src="js/centers.js"></script>
-    <script src="js/data.js"></script>
+    <link rel="stylesheet" href="css/style.css"/>
     <link rel="stylesheet" href="css/leaflet.css" />
     <link rel="stylesheet" href="css/leaflet.label.css"/>
-    <style>
-        body { margin:0; padding:0; font-family: arial; }
-        #map { position:absolute; left: 0%; top:0; bottom:0; width:100%; }
-    </style>
   </head>
   <body>
     <div id="map"></div>
+    <ul id="examples">
+      <li><button id="ex01" title="Example #01">#1</button></li>
+      <li><button id="ex02" title="Example #02">#2</button></li>
+      <li><button id="ex03" title="Example #03">#3</button></li>
+    </ul>
+    <div id="slider">
+      <input id="slidebar" type="range" value="0" min="0" step="1" title="Change visualization iteration"/>
+    </div>
+    <!-- load clusters data -->
+    <script src="js/centers.js"></script>
+    <script src="js/data.js"></script>
+    <!-- base code -->
     <script src="js/main.js"></script>
   </body>
 </html>

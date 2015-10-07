@@ -1,0 +1,74 @@
+body {
+    margin:0;
+    padding:0;
+    font-family: arial;
+}
+#map {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+}
+#examples {
+    list-style: none;
+    background-color: #fff;
+    margin: 0;
+    padding: 0;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, .65);
+    text-align: center;
+    overflow: hidden;
+    font-size: 0;
+    position: absolute;
+    width: 26px;
+    left: 10px;
+    z-index: 3;
+    border-radius: 5px;
+    top: 70px;
+}
+#examples li {
+    display: inline-block;
+    width: 26px;
+    padding: 5px 0px;
+    margin: 0;
+    border: 1px solid rgba(0, 0, 0, 0);
+    border-bottom: 1px solid #ccc;
+}
+#examples li button {
+    border: 0;
+    padding: 0;
+    height: 16px;
+    width: 16px;
+    background-color: rgba(0, 0, 0, 0);
+    background-size: contain;
+    color: #000000;
+    font-size: 6pt;
+    vertical-align: middle;
+    text-align: center;
+}
+#examples li:hover, #examples li button:hover, #examples li button:active {
+    background: #f4f4f4;
+}
+#examples li:active {
+    background: #f4f4f4;
+    border: thin dotted;
+}
+#slider {
+    height: 30px;
+    width: 200px;
+    left: calc(50% - 100px);
+    bottom: 20px;
+    position: absolute;
+    background-color: #fff;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, .65);
+    text-align: center;
+    overflow: hidden;
+    z-index: 1;
+    border-radius: 5px;
+}
+#slider input {
+    margin: 11px 5px;
+    -webkit-appearance: none;
+    background-color: #ccc;
+    height: 4px;
+}
