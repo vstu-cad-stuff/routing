@@ -50,12 +50,14 @@ def crossover(data, route):
 # output:
 #   python list of list -- [[route1], [route2], ...]
 def buildRoutes(data, route):
+    iterations = []
     route_count = 5
     iteration_count = 20
     routes = ax.toChunk(route, route_count)
     for iteration in range(iteration_count):
+        iterations.append(routes)
         rate_before = ax.routeRating(data, routes)
-        print('iteration {} --> {}'.format(iteration, rate_before))
+        print('#{:04} with avg network {:.8f}'.format(iteration, rate_before))
         new_routes = []
         for index in range(len(routes)):
             if np.random.random() >= 0.5:
@@ -66,6 +68,9 @@ def buildRoutes(data, route):
         rate_after = ax.routeRating(data, new_routes)
         if rate_after < rate_before:
             routes = new_routes
+    from datetime import datetime
+    with open('network-iteration-{:%Y-%m-%d-%H-%M-%S}.js'.format(datetime.now()), 'w') as f:
+        f.write('network = {}'.format(iterations))
     return routes
 
 if __name__ == '__main__':
@@ -74,3 +79,4 @@ if __name__ == '__main__':
     data.loadClusters('./data/100_c.js')
     init_route = greedyInit(data.matrix)
     result = buildRoutes(data, init_route)
+    print('result =', result)
