@@ -19,12 +19,14 @@
       <li><button id="ex03" title="Example #03">#3</button></li>
     </ul>
     <div id="slider">
-      <input id="slidebar" type="range" value="0" min="0" step="1" title="Change visualization iteration"/>
+      <input id="slidebar" type="range" value="0" min="0" max="19" step="1" title="Change visualization iteration"/>
     </div>
     <!-- load clusters data -->
     <script src="js/centers.js"></script>
     <script src="js/data.js"></script>
+    <script src="js/network.js"></script>
     <!-- base code -->
     <script src="js/main.js"></script>
+    <script>drawRoutes()</script>
   </body>
 </html>
