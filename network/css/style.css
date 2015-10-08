@@ -46,12 +46,8 @@ body {
     vertical-align: middle;
     text-align: center;
 }
-#examples li:hover, #examples li button:hover, #examples li button:active {
+#examples li:hover, #examples li button:hover, #examples li button:active, #examples li:active {
     background: #f4f4f4;
-}
-#examples li:active {
-    background: #f4f4f4;
-    border: thin dotted;
 }
 #slider {
     height: 30px;
