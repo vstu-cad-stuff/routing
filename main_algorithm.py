@@ -70,7 +70,7 @@ def buildRoutes(data, route):
             routes = new_routes
     from datetime import datetime
     with open('network-iteration-{:%Y-%m-%d-%H-%M-%S}.js'.format(datetime.now()), 'w') as f:
-        f.write('network = {}'.format(iterations))
+        f.write('network_list.push({});'.format(iterations))
     return routes
 
 if __name__ == '__main__':
