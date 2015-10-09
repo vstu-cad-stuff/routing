@@ -1,17 +1,17 @@
 var circles;
 var routes;
 var markers = [];
+var network = [];
 var circle_color = '#123456';
 var route_colors = ['#239837', '#d2691e', '#ff69b4', '#1e90ff', '#483d8b'];
 var slidebar = document.getElementById('slidebar');
-slidebar.max = network.length-1;
-slidebar.setAttribute('onChange', 'drawRoutes()');
-slidebar.setAttribute('onMouseMove', 'drawRoutes()');
-
 var map = L.map('map').setView([48.7900, 44.8000], 13);
+
 L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
+slidebar.setAttribute('onChange', 'drawRoutes()');
+slidebar.setAttribute('onMouseMove', 'drawRoutes()');
 
 function createMarker(coord, label, color, id) {
     marker = L.circleMarker(coord, {
@@ -29,6 +29,9 @@ function drawClusters() {
         lat = centers[i][0];
         lng = centers[i][1];
         ctr = centers[i][2];
+        if (lat == 0 && lng == 0) {
+            continue;
+        }
         text = '<b>Cluster #' + (ctr+1) + '</b>; Pop: ' + G[i][i] + '<br>' + lat + ', ' + lng;
         label = '#' + (ctr+1) + ' : ' + G[i][i];
         markers[i] = createMarker([lat, lng], [label, text], circle_color, i);
@@ -54,18 +57,17 @@ function drawRoutes() {
             polyline = L.polyline([[c00, c01], [c10, c11]], {
                 color: route_colors[network_count],
                 weight: 3 + Math.pow(G[p1][p2], 1 / 4) * 2,
-                smoothFactor: 1
             }).bindLabel('flow: ' + G[p1][p2], {noHide: true});
             polylineDecorator = L.polylineDecorator(polyline, {
                 patterns: [{
                     offset: 25,
                     repeat: 100,
                     symbol: L.Symbol.arrowHead({
-                        pixelSize: 10,
+                        pixelSize: 12,
                         pathOptions: {
                             color: route_colors[network_count],
                             fillOpacity: 1,
-                            weight: 0
+                            weight: 1
                         }
                     })
                 }]
@@ -77,5 +79,26 @@ function drawRoutes() {
     map.addLayer(routes);
 }
 
+function selectRoute(index) {
+    network = network_list[index];
+    slidebar.max = network.length - 1;
+    drawRoutes();
+}
+
+function renderList() {
+    var count = network_list.length;
+    var ul = document.getElementById('examples');
+    for (index = 0; index < count; index++) {
+        var li = document.createElement('li');
+        var button = document.createElement('button');
+        button.title = "Example route #" + ( index + 1 );
+        button.setAttribute("onclick", "selectRoute(" + index + ")");
+        button.innerHTML = "#" + ( index + 1 );
+        li.appendChild(button);
+        ul.appendChild(li);
+    }
+}
+
+renderList();
 drawClusters();
-drawRoutes();
+selectRoute(0);

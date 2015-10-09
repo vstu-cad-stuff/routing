@@ -2,31 +2,27 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <script src="js/leaflet.js"></script>
-    <script src="js/L.LineUtil.PolylineDecorator.js"></script>
-    <script src="js/L.Symbol.js"></script>
-    <script src="js/L.PolylineDecorator.js"></script>
-    <script src="js/leaflet.label.js"></script>
+    <script src="js/leaflet/leaflet.js"></script>
+    <script src="js/leaflet/L.LineUtil.PolylineDecorator.js"></script>
+    <script src="js/leaflet/L.Symbol.js"></script>
+    <script src="js/leaflet/L.PolylineDecorator.js"></script>
+    <script src="js/leaflet/leaflet.label.js"></script>
     <link rel="stylesheet" href="css/style.css"/>
     <link rel="stylesheet" href="css/leaflet.css" />
     <link rel="stylesheet" href="css/leaflet.label.css"/>
   </head>
   <body>
+    <script>network_list = [];</script>
     <div id="map"></div>
-    <ul id="examples">
-      <li><button id="ex01" title="Example #01">#1</button></li>
-      <li><button id="ex02" title="Example #02">#2</button></li>
-      <li><button id="ex03" title="Example #03">#3</button></li>
-    </ul>
+    <ul id="examples"></ul>
     <div id="slider">
-      <input id="slidebar" type="range" value="0" min="0" max="19" step="1" title="Change visualization iteration"/>
+      <input id="slidebar" type="range" value="0" min="0" step="1" title="Change visualization iteration"/>
     </div>
-    <!-- load clusters data -->
-    <script src="js/centers.js"></script>
-    <script src="js/data.js"></script>
-    <script src="js/network.js"></script>
-    <!-- base code -->
+    <script src="js/data/centers.js"></script>
+    <script src="js/data/matrix.js"></script>
+    <script src="js/data/network-01.js"></script>
+    <script src="js/data/network-02.js"></script>
+    <script src="js/data/network-03.js"></script>
     <script src="js/main.js"></script>
-    <script>drawRoutes()</script>
   </body>
 </html>
