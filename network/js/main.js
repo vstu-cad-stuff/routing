@@ -88,6 +88,9 @@ function selectRoute(index) {
 function renderList() {
     var count = network_list.length;
     var ul = document.getElementById('examples');
+    while (ul.hasChildNodes()) {
+        ul.removeChild(ul.lastChild);
+    }
     for (index = 0; index < count; index++) {
         var li = document.createElement('li');
         var button = document.createElement('button');
