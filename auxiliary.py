@@ -32,12 +32,14 @@ def toChunk(array, count):
 #   data  -- cluster data class (correspondence matrix, coordinates)
 #   routes -- route network
 # output:
-#   (distance, )
+#   [average distance, average traffic]
 def routeRating(data, routes):
     total_distance = 0
+    total_traffic = 0
     for route in routes:
-        total_distance += data.getRouteLength(route)
-    return total_distance / len(routes)
+        total_distance += data.getMetricCounter(data.getDistance, route)
+        total_traffic += data.getMetricCounter(data.getPeople, route)
+    return [total_distance / len(routes), total_traffic / len(routes)]
 
 
 # function: swap two element

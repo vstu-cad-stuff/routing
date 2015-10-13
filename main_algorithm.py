@@ -57,7 +57,7 @@ def buildRoutes(data, route):
     for iteration in range(iteration_count):
         iterations.append(routes)
         rate_before = ax.routeRating(data, routes)
-        print('#{:04} with avg network {:.8f}'.format(iteration, rate_before))
+        print('#{:04} with avg network [{:.8f}, {:.2f}]'.format(iteration, *rate_before))
         new_routes = []
         for index in range(len(routes)):
             if np.random.random() >= 0.5:
@@ -66,7 +66,7 @@ def buildRoutes(data, route):
                 result = crossover(data, routes[index])
             new_routes.append(result)
         rate_after = ax.routeRating(data, new_routes)
-        if rate_after < rate_before:
+        if rate_after[0] < rate_before[0]:
             routes = new_routes
     from datetime import datetime
     with open('network-iteration-{:%Y-%m-%d-%H-%M-%S}.js'.format(datetime.now()), 'w') as f:

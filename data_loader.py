@@ -128,15 +128,14 @@ class Clusters:
     # output:
     #   distance in sphere
     def getDistance(self, a, b):
-        # sphere radius (Earth)
+        # sphere radius (Earth) in meters
         rad = 6372795
         dlng = abs(self.clusters[a][1] - self.clusters[b][1]) * np.pi / 180.0
         lat1, lat2 = self.clusters[a][0] * np.pi / 180.0, self.clusters[b][0] * np.pi / 180.0
         p1, p2, p3 = np.cos(lat2), np.sin(dlng), np.cos(lat1)
-        p4, p5, p6 = np.sin(lat2), np.sin(lat1), np.cos(lat2)
-        p7 = np.cos(dlng)
-        y = np.sqrt(np.power(p1 * p2, 2) + np.power(p3 * p4 - p5 * p6 * p7, 2))
-        x = p5 * p4 + p3 * p6 * p7
+        p4, p5, p6 = np.sin(lat2), np.sin(lat1), np.cos(dlng)
+        y = np.sqrt(np.power(p1 * p2, 2) + np.power(p3 * p4 - p5 * p1 * p6, 2))
+        x = p5 * p4 + p3 * p1 * p6
         return rad * np.arctan2(y, x)
 
     # function: calculate people count from a to b
@@ -148,13 +147,14 @@ class Clusters:
     def getPeople(self, a, b):
         return self.matrix[a][b]
 
-    # function: calculate route length from cluster_id list
+    # function: calculate route param by func from cluster_id list
     # input:
+    #   func  -- calculation func (getPeople, getDistance)
     #   route -- array of cluster_id
     # ouput:
-    #   route length
-    def getRouteLength(self, route):
-        distance = 0
+    #   route param
+    def getMetricCounter(self, func, route):
+        param = 0
         for index in range(len(route)-1):
-            distance += self.getDistance(route[index+0], route[index+1])
-        return distance
+            param += func(route[index+0], route[index+1])
+        return param
