@@ -15,6 +15,23 @@
     <script>network_list = [];</script>
     <div id="map"></div>
     <ul id="examples"></ul>
+    <div id="legend">
+      <p align="center"><b>Legend</b></p>
+      <div class="divTable">
+        <div class="headRow">
+          <div class="divCellText">Average route length</div>
+          <div class="divCellData" id="avg_route"></div>
+        </div>
+        <div class="headRow">
+          <div class="divCellText">Total route length</div>
+          <div class="divCellData" id="sum_route"></div>
+        </div>
+        <div class="headRow">
+          <div class="divCellText">Total passenger traffic</div>
+          <div class="divCellData" id="sum_traff"></div>
+        </div>
+      </div>
+    </div>
     <div id="slider">
       <input id="slidebar" type="range" value="0" min="0" step="1" title="Change visualization iteration"/>
     </div>

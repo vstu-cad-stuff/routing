@@ -26,6 +26,23 @@ body {
     border-radius: 5px;
     top: 70px;
 }
+#legend {
+    background-color: #fff;
+    margin: 0;
+    padding: 0;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, .65);
+    overflow: hidden;
+    font-size: 14px;
+    text-align: left;
+    padding: 5px;
+    position: absolute;
+    left: 10px;
+    border-radius: 5px;
+    bottom: 10px;
+}
+#legend p {
+    margin: 0;
+}
 #examples li {
     display: inline-block;
     width: 26px;
@@ -53,7 +70,7 @@ body {
     height: 30px;
     width: 200px;
     left: calc(50% - 100px);
-    bottom: 20px;
+    bottom: 10px;
     position: absolute;
     background-color: #fff;
     box-shadow: 0 1px 5px rgba(0, 0, 0, .65);
@@ -67,4 +84,22 @@ body {
     -webkit-appearance: none;
     background-color: #ccc;
     height: 4px;
+}
+.divTable {
+    display: table;
+    width: auto;
+}
+.divRow {
+   display:table-row;
+   width: auto;
+}
+.divCellText {
+    float: left;
+    display: table-column;
+    width: 150px;
+}
+.divCellData {
+    float: left;
+    display: table-column;
+    width: auto;
 }
