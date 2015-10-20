@@ -18,7 +18,7 @@ class GeoConverter:
             feature = geojson.Feature(geometry=self.convex_hull),
             geojson.dump(feature, jfile)
             return self
-        raise Exception('can\'t write cluster shell to file')
+        raise Exception('can\'t write convex hull points to file')
 
     def graham(self):
         def rotate(a, b, c):
