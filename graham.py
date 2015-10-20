@@ -5,7 +5,7 @@ import geojson
 class GeoConverter:
     def __init__(self):
         self.geo_data = None
-        self.cluster_shell = None
+        self.convex_hull = None
 
     def load(self, filename):
         with open(filename, 'r') as jfile:
@@ -15,9 +15,8 @@ class GeoConverter:
 
     def dump(self, filename):
         with open(filename, 'w') as jfile:
-            # feature = geojson.Feature(geometry=self.cluster_shell,
-            #     properties={'shell': '#1'})
-            geojson.dump(self.cluster_shell, jfile)
+            feature = geojson.Feature(geometry=self.convex_hull),
+            geojson.dump(feature, jfile)
             return self
         raise Exception('can\'t write cluster shell to file')
 
@@ -40,9 +39,9 @@ class GeoConverter:
             while rotate(a[s[-2]], a[s[-1]], a[p[i]]) < 0:
                 del s[-1]
             s.append(p[i])
-        self.cluster_shell = geojson.LineString(list(map(lambda x: a[x], s)))
+        self.convex_hull = geojson.LineString(list(map(lambda x: [a[x][1], a[x][0]], s)))
         return self
 
 if __name__ == '__main__':
     data = GeoConverter()
-    data.load('./data/geoJSON.js').graham().dump('./render-page/js/test.js')
+    data.load('./data/geoJSON.json').graham().dump('./render-page/js/convex-hull.json')
