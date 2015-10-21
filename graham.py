@@ -1,4 +1,4 @@
-#!/bin/env python
+from functools import reduce
 import geojson
 
 
@@ -6,6 +6,7 @@ class GeoConverter:
     def __init__(self):
         self.geo_data = None
         self.convex_hull = None
+        self.geo_center = None
 
     def load(self, filename):
         with open(filename, 'r') as jfile:
@@ -15,8 +16,10 @@ class GeoConverter:
 
     def dump(self, filename):
         with open(filename, 'w') as jfile:
-            feature = geojson.Feature(geometry=self.convex_hull),
-            geojson.dump(feature, jfile)
+            feature_convex = geojson.Feature(geometry=self.convex_hull, properties={'label': 'Convex hull'})
+            feature_center = geojson.Feature(geometry=self.geo_center, properties={'label': 'Center of convex hull'})
+            features = geojson.FeatureCollection([feature_convex, feature_center, self.geo_data])
+            geojson.dump(features, jfile)
             return self
         raise Exception('can\'t write convex hull points to file')
 
@@ -44,6 +47,13 @@ class GeoConverter:
         self.convex_hull = geojson.LineString(convex_hull)
         return self
 
+    def center(self):
+        length = len(self.geo_data['coordinates'])
+        center_c1 = reduce(lambda x, y: x + y, map(lambda x: x[0], self.geo_data['coordinates'])) / length
+        center_c2 = reduce(lambda x, y: x + y, map(lambda x: x[1], self.geo_data['coordinates'])) / length
+        self.geo_center = geojson.Point([center_c1, center_c2])
+        return self
+
 if __name__ == '__main__':
     data = GeoConverter()
-    data.load('./data/geoJSON.json').graham().dump('./render-page/js/convex-hull.json')
+    data.load('./data/geoJSON.json').graham().center().dump('./render-page/js/convex-hull.json')
