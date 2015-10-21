@@ -8,7 +8,7 @@ $.getJSON('./js/convex-hull.json', function(data) {
     });
     var map = L.map('map', {
         'center': [48.7900, 44.8000],
-        'zoom': 13,
+        'zoom': 12,
         'layers': [
             L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
