@@ -39,7 +39,9 @@ class GeoConverter:
             while rotate(a[s[-2]], a[s[-1]], a[p[i]]) < 0:
                 del s[-1]
             s.append(p[i])
-        self.convex_hull = geojson.LineString(list(map(lambda x: a[x], s)))
+        convex_hull = list(map(lambda x: a[x], s))
+        convex_hull.append(convex_hull[0])
+        self.convex_hull = geojson.LineString(convex_hull)
         return self
 
 if __name__ == '__main__':
