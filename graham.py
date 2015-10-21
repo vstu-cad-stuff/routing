@@ -1,4 +1,5 @@
 from functools import reduce
+from auxiliary import swapByIndex
 import geojson
 
 
@@ -24,25 +25,23 @@ class GeoConverter:
         raise Exception('can\'t write convex hull points to file')
 
     def graham(self):
-        def rotate(a, b, c):
-            return (b[1] - a[1]) * (c[0] - b[0]) - (b[0] - a[0]) * (c[1] - b[1])
-        a = self.geo_data['coordinates']
-        n = len(a)
-        p = list(range(n))
-        for i in range(1, n):
-            if a[p[i]][1] < a[p[0]][1]:
-                p[0], p[i] = p[i], p[0]
-        for i in range(2, n):
+        def rotate(d, a, b, c):
+            return (d[b][1] - d[a][1]) * (d[c][0] - d[b][0]) - \
+                (d[b][0] - d[a][0]) * (d[c][1] - d[b][1])
+        coords = self.geo_data['coordinates']
+        length = len(coords)
+        index = sorted(range(length), key=lambda x: coords[x][1])
+        for i in range(2, length):
             j = i
-            while (j > 1) and (rotate(a[p[0]], a[p[j - 1]], a[p[j]]) < 0):
-                p[j], p[j - 1] = p[j - 1], p[j]
+            while (j > 1) and (rotate(coords, index[0], index[j-1], index[j]) < 0):
+                swapByIndex(index, j, j-1)
                 j -= 1
-        s = [p[0], p[1]]
-        for i in range(2, n):
-            while rotate(a[s[-2]], a[s[-1]], a[p[i]]) < 0:
-                del s[-1]
-            s.append(p[i])
-        convex_hull = list(map(lambda x: a[x], s))
+        cluster_id = [index[0], index[1]]
+        for i in range(2, length):
+            while rotate(coords, cluster_id[-2], cluster_id[-1], index[i]) < 0:
+                del cluster_id[-1]
+            cluster_id.append(index[i])
+        convex_hull = list(map(lambda x: coords[x], cluster_id))
         convex_hull.append(convex_hull[0])
         self.convex_hull = geojson.LineString(convex_hull)
         return self
