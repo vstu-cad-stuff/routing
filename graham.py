@@ -30,7 +30,7 @@ class GeoConverter:
                 (d[b][0] - d[a][0]) * (d[c][1] - d[b][1])
         coords = self.geo_data['coordinates']
         length = len(coords)
-        index = sorted(range(length), key=lambda x: coords[x][1])
+        index = sorted(range(length), key=lambda x: coords[x][0])
         for i in range(2, length):
             j = i
             while (j > 1) and (rotate(coords, index[0], index[j-1], index[j]) < 0):
