@@ -29,7 +29,7 @@ $.getJSON('./js/convex-hull.json', function(data) {
                     color: '#123456',
                     weight: 1,
                     opacity: 1,
-                    fillOpacity: 0.1
+                    fillOpacity: 0.35
                 });
             }
         },
