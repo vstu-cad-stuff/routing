@@ -1,25 +1,28 @@
 from functools import reduce
 from auxiliary import swapByIndex
+from geographiclib.geodesic import Geodesic
 import numpy as np
 import geojson as gs
 
 
 # function: calculate distance from a to b
 # input:
-#   a -- first point (cluster_id)
-#   b -- second point (cluster_id)
+#   a -- first point
+#   b -- second point
 # output:
 #   distance in sphere
 def getDistance(a, b):
-    # sphere radius (Earth) in meters
-    rad = 6372795
-    dlng = abs(a[0] - b[0]) * np.pi / 180.0
-    lat1, lat2 = a[1] * np.pi / 180.0, b[1] * np.pi / 180.0
-    p1, p2, p3 = np.cos(lat2), np.sin(dlng), np.cos(lat1)
-    p4, p5, p6 = np.sin(lat2), np.sin(lat1), np.cos(dlng)
-    y = np.sqrt(np.power(p1 * p2, 2) + np.power(p3 * p4 - p5 * p1 * p6, 2))
-    x = p5 * p4 + p3 * p1 * p6
-    return rad * np.arctan2(y, x)
+    return Geodesic.WGS84.Inverse(a[1], a[0], b[1], b[0])['s12']
+
+
+# function: calculate new point
+# input:
+#   a       -- point coord ([lon, lat]
+#   azimut  -- ...
+#   radius  -- ...
+def getNewCoord(a, azimut, radius):
+    lst = Geodesic.WGS84.Direct(a[1], a[0], azimut, radius)
+    return [lst['lon2'], lst['lat2']]
 
 
 class GeoConverter:
@@ -87,21 +90,12 @@ class GeoConverter:
         for point in self.convex_hull:
             r1 = getDistance(r0, point)
             distance.append(r1)
-        radius_point = self.convex_hull[distance.index(max(distance))]
-        self.radius = [abs(r0[0]-radius_point[0]), abs(r0[1]-radius_point[1])]
+        r1 = self.convex_hull[distance.index(max(distance))]
+        radius = getDistance(r0, r1)
         self.circle_points = []
         for angle in range(0, 360, 10):
-            angle_rad = angle * np.pi / 180
-            # radius = self.radius[0] if self.radius[0] > self.radius[1] else self.radius[1]
-            radius = np.sqrt(self.radius[0] ** 2 + self.radius[1] ** 2)
-            point = [
-                r0[0] + radius * np.cos(angle_rad),
-                r0[1] + radius * np.sin(angle_rad)
-            ]
-            tmp = np.sqrt((r0[0]-point[0]) ** 2 + (r0[1]-point[1]) ** 2)
-            print(getDistance(r0, point), tmp)
-
-            self.circle_points.append(point)
+            data = getNewCoord(r0, angle, radius)
+            self.circle_points.append(data)
         self.circle_points.append(self.circle_points[0])
         return self
 
