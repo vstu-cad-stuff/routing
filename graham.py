@@ -48,13 +48,15 @@ class GeoConverter:
                 properties={'label': 'Convex Hull'})
             feature_center = gs.Feature(
                 geometry=gs.Point(self.geo_center),
-                properties={'label': 'Center of Convex Hull', 'style': '#1'})
+                properties={'label': 'Center of Convex Hull', 'color': '#B22222'})
             feature_points = gs.Feature(
                 geometry=gs.MultiPoint(self.outer_circle_points),
-                properties={'label': 'Outer Circle Points', 'style': '#2'})
-            features = gs.FeatureCollection(
-                [feature_convex, feature_center, self.geo_data, feature_points, self.color_points])
-            gs.dump(features, jfile)
+                properties={'label': 'Outer Circle Points', 'color': '#3D6D1C'})
+            feature_pack = gs.FeatureCollection(
+                [feature_convex, feature_center, self.geo_data, feature_points])
+            feature_color = gs.FeatureCollection(self.color_points)
+            res_feature = gs.FeatureCollection([feature_pack, feature_color])
+            gs.dump(res_feature, jfile)
             return self
         raise Exception('can\'t write convex hull points to file')
 
