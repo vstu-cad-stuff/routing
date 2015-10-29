@@ -17,19 +17,19 @@ $.getJSON('./js/convex-hull.json', function(data) {
                     color = '#AC66AF';
                 }
                 return new L.CircleMarker(latlng, {
-                    radius: 6,
+                    radius: 5,
                     color: color,
-                    weight: 3,
-                    opacity: 0.8,
-                    fillOpacity: 0.6
+                    weight: 4,
+                    opacity: 1,
+                    fillOpacity: 1
                 });
             } else {
                 return new L.CircleMarker(latlng, {
                     radius: 10,
                     color: '#123456',
                     weight: 1,
-                    opacity: 0.6,
-                    fillOpacity: 0.4
+                    opacity: 1,
+                    fillOpacity: 0.1
                 });
             }
         },
