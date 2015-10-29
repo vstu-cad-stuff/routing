@@ -1,3 +1,4 @@
 [submodule "randomcolor"]
 	path = randomcolor
-	url = git@github.com:vstu-cad-stuff/randomcolor-py.git
+	url = https://github.com/vstu-cad-stuff/randomcolor-py.git
+
