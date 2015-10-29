@@ -11,30 +11,24 @@ $.getJSON('./js/convex-hull.json', function(data) {
         },
         pointToLayer: function (feature, latlng) {
             if (feature.properties) {
-                switch (feature.properties.style) {
-                    case "#1":
-                        color = '#B22222';
-                        break;
-                    case "#2":
-                        color = '#3D6D1C';
-                        break;
-                    default:
-                        color = '#AC66AF';
-                        break;
+                if (feature.properties.color) {
+                    color = feature.properties.color;
+                } else {
+                    color = '#AC66AF';
                 }
                 return new L.CircleMarker(latlng, {
-                    radius: 5,
+                    radius: 6,
                     color: color,
-                    weight: 1,
+                    weight: 3,
                     opacity: 0.8,
-                    fillOpacity: 0.4
+                    fillOpacity: 0.6
                 });
             } else {
                 return new L.CircleMarker(latlng, {
                     radius: 10,
                     color: '#123456',
                     weight: 1,
-                    opacity: 0.8,
+                    opacity: 0.6,
                     fillOpacity: 0.4
                 });
             }
