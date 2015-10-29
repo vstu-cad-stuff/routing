@@ -118,12 +118,13 @@ class GeoConverter:
         self.initial_cluster = []
         for item in self.outer_circle_points:
             self.initial_cluster.append(self.pointInCircle(item))
+        rnd_color = RandomColor()
+        colors = rnd_color.generate(count=len(self.initial_cluster))
         for item in self.initial_cluster:
             multipoint = list(map(lambda x: self.geo_data['coordinates'][x], item))
-            color = str(RandomColor())
             self.color_points.append(gs.Feature(
                 geometry=gs.MultiPoint(multipoint),
-                properties={'label': 'Initial clusters', 'color': color}))
+                properties={'label': 'Initial clusters', 'color': colors.pop()}))
         print('Initial_clusters =', self.initial_cluster)
         return self
 
