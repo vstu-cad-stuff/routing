@@ -46,10 +46,10 @@ class GeoConverter:
                 properties={'label': 'Convex hull'})
             feature_center = gs.Feature(
                 geometry=gs.Point(self.geo_center),
-                properties={'label': 'Center of convex hull'})
+                properties={'label': 'Center of convex hull', 'style': '#1'})
             feature_points = gs.Feature(
-                geometry=gs.LineString(self.circle_points),
-                properties={'label': 'Convex Hull points'})
+                geometry=gs.MultiPoint(self.circle_points),
+                properties={'label': 'Convex Hull points', 'style': '#2'})
             features = gs.FeatureCollection(
                 [feature_convex, feature_center, self.geo_data, feature_points])
             gs.dump(features, jfile)
@@ -93,13 +93,13 @@ class GeoConverter:
         r1 = self.convex_hull[distance.index(max(distance))]
         radius = getDistance(r0, r1)
         self.circle_points = []
-        for angle in range(0, 360, 10):
+        ncount = np.arange(0, 360, 360/(2*count))
+        for angle in ncount:
             data = getNewCoord(r0, angle, radius)
             self.circle_points.append(data)
-        self.circle_points.append(self.circle_points[0])
         return self
 
 if __name__ == '__main__':
     data = GeoConverter()
-    data.load('./data/geoJSON.json').graham().center().routes(25)
+    data.load('./data/geoJSON.json').graham().center().routes(12)
     data.dump('./convex-hull.json')
