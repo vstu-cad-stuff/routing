@@ -17,15 +17,15 @@ $.getJSON('./js/convex-hull.json', function(data) {
                     color = '#AC66AF';
                 }
                 return new L.CircleMarker(latlng, {
-                    radius: 5,
+                    radius: 12,
                     color: color,
                     weight: 4,
-                    opacity: 1,
-                    fillOpacity: 1
+                    opacity: 0.5,
+                    fillOpacity: 0.8
                 });
             } else {
                 return new L.CircleMarker(latlng, {
-                    radius: 10,
+                    radius: 8,
                     color: '#123456',
                     weight: 1,
                     opacity: 1,
