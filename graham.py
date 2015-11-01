@@ -49,13 +49,11 @@ class GeoConverter:
             feature_center = gs.Feature(
                 geometry=gs.Point(self.geo_center),
                 properties={'label': 'Center of Convex Hull', 'color': '#B22222'})
-            feature_points = gs.Feature(
-                geometry=gs.MultiPoint(self.outer_circle_points),
-                properties={'label': 'Outer Circle Points', 'color': '#3D6D1C'})
             feature_pack = gs.FeatureCollection(
-                [feature_convex, feature_center, self.geo_data, feature_points])
-            feature_color = gs.FeatureCollection(self.color_points)
-            res_feature = gs.FeatureCollection([feature_pack, feature_color])
+                [feature_convex, feature_center, self.geo_data])
+            feature_color_point = gs.FeatureCollection(self.color_points)
+            feature_outer_circle = gs.FeatureCollection(self.outer_circle_points)
+            res_feature = gs.FeatureCollection([feature_pack, feature_color_point, feature_outer_circle])
             gs.dump(res_feature, jfile)
             return self
         raise Exception('can\'t write convex hull points to file')
@@ -93,7 +91,7 @@ class GeoConverter:
             for index in range(len(data)):
                 yield [index, data[index]]
         initial_coeff = 0.05
-        eps_multiplier = 1.5
+        eps_multiplier = 1.1
         eps = self.radius * initial_coeff
         clusters = []
         while len(clusters) == 0:
@@ -113,21 +111,26 @@ class GeoConverter:
         r1 = self.convex_hull[distance.index(max(distance))]
         self.radius = getDistance(r0, r1)
         self.outer_circle_points = []
+        rnd_color = RandomColor()
+        colors = rnd_color.generate(count=count)
+        colors += colors
         ncount = np.arange(0, 360, 360/(2*count))
         for angle in ncount:
             data = getNewCoord(r0, angle, self.radius)
-            self.outer_circle_points.append(data)
+            self.outer_circle_points.append(
+                gs.Feature(geometry=gs.Point(data), properties={
+                    'label': 'Outer Circle Points', 'color': colors.pop()}))
         self.initial_cluster = []
         for item in self.outer_circle_points:
-            self.initial_cluster.append(self.pointInCircle(item))
-        rnd_color = RandomColor()
-        colors = rnd_color.generate(count=len(self.initial_cluster))
-        for item in self.initial_cluster:
+            self.initial_cluster.append([
+                self.pointInCircle(item['geometry']['coordinates']),
+                item['properties']['color']
+            ])
+        for item, color in self.initial_cluster:
             multipoint = list(map(lambda x: self.geo_data['coordinates'][x], item))
             self.color_points.append(gs.Feature(
                 geometry=gs.MultiPoint(multipoint),
-                properties={'label': 'Initial clusters', 'color': colors.pop()}))
-        print('Initial_clusters =', self.initial_cluster)
+                properties={'label': 'Initial clusters', 'color': color}))
         return self
 
 if __name__ == '__main__':
