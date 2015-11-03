@@ -2,6 +2,7 @@ from functools import reduce
 from auxiliary import swapByIndex
 from randomcolor.randomcolor import RandomColor
 from geographiclib.geodesic import Geodesic
+from data_loader import Clusters
 import numpy as np
 import geojson as gs
 
@@ -27,13 +28,14 @@ def getNewCoord(a, azimut, radius):
 
 
 class GeoConverter:
-    def __init__(self):
+    def __init__(self, matrix):
         self.geo_data = None
         self.convex_hull = None
         self.outer_circle_points = None
         self.geo_center = None
         self.radius = None
         self.color_points = []
+        self.matrix = matrix
 
     def load(self, filename):
         with open(filename, 'r') as jfile:
@@ -45,7 +47,7 @@ class GeoConverter:
         with open(filename, 'w') as jfile:
             feature_convex = gs.Feature(
                 geometry=gs.LineString(self.convex_hull),
-                properties={'label': 'Convex Hull'})
+                properties={'label': 'Convex Hull', 'color': '#1e90ff'})
             feature_center = gs.Feature(
                 geometry=gs.Point(self.geo_center),
                 properties={'label': 'Center of Convex Hull', 'color': '#B22222'})
@@ -91,7 +93,7 @@ class GeoConverter:
             for index in range(len(data)):
                 yield [index, data[index]]
         initial_coeff = 0.05
-        eps_multiplier = 1.1
+        eps_multiplier = 1.5
         eps = self.radius * initial_coeff
         clusters = []
         while len(clusters) == 0:
@@ -113,6 +115,7 @@ class GeoConverter:
         self.outer_circle_points = []
         rnd_color = RandomColor()
         colors = rnd_color.generate(count=count)
+        # color for clusters on the other side
         colors += colors
         ncount = np.arange(0, 360, 360/(2*count))
         for angle in ncount:
@@ -122,18 +125,25 @@ class GeoConverter:
                     'label': 'Outer Circle Points', 'color': colors.pop()}))
         self.initial_cluster = []
         for item in self.outer_circle_points:
+            points = self.pointInCircle(item['geometry']['coordinates'])
+            # sort list by max people in cluster
+            points.sort(key=lambda x: -matrix.getPeople(x, x))
             self.initial_cluster.append([
-                self.pointInCircle(item['geometry']['coordinates']),
+                points[0], item['geometry']['coordinates'],
                 item['properties']['color']
             ])
-        for item, color in self.initial_cluster:
-            multipoint = list(map(lambda x: self.geo_data['coordinates'][x], item))
+        for found, cluster, color in self.initial_cluster:
+            destination = self.geo_data['coordinates'][found]
             self.color_points.append(gs.Feature(
-                geometry=gs.MultiPoint(multipoint),
+                geometry=gs.LineString([cluster, destination]),
                 properties={'label': 'Initial clusters', 'color': color}))
         return self
 
 if __name__ == '__main__':
-    data = GeoConverter()
+    # badcode! please update!
+    # rewrite data_loader module
+    matrix = Clusters()
+    matrix.generateMatrix('./data/100_p.js', './data/ways.js')
+    data = GeoConverter(matrix)
     data.load('./data/geoJSON.json').graham().center().routes(12)
     data.dump('./convex-hull.json')
