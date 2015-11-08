@@ -3,8 +3,12 @@ from auxiliary import swapByIndex
 from randomcolor.randomcolor import RandomColor
 from geographiclib.geodesic import Geodesic
 from data_loader import Clusters
+import requests
 import numpy as np
 import geojson as gs
+import json as js
+
+SERVER_URL = 'http://oriole.strategway.com:5000/'
 
 
 # function: calculate distance from a to b
@@ -27,6 +31,30 @@ def getNewCoord(a, azimut, radius):
     return [lst['lon2'], lst['lat2']]
 
 
+class Route:
+    def __init__(self, index, coord):
+        self.coord = coord
+        self.index = index
+        self.len = len(index)
+        self.distance = self.distance()
+
+    def distance(self):
+        viaroute = SERVER_URL + 'viaroute?alt=false&geometry=false'
+        for item in self.index:
+            viaroute += '&loc={},{}'.format(self.coord[item][1], self.coord[item][0])
+        req = js.loads(requests.get(viaroute).text)
+        return req['route_summary']['total_distance']
+
+    def pairs(self):
+        pair = []
+        for index in range(self.len-1):
+            pair.append([self.index[index+0], self.index[index+1]])
+        return pair
+
+    def __str__(self):
+        return '{} : {}'.format(self.index, self.distance)
+
+
 class GeoConverter:
     def __init__(self, matrix):
         self.geo_data = None
@@ -34,37 +62,39 @@ class GeoConverter:
         self.outer_circle_points = None
         self.geo_center = None
         self.radius = None
-        self.color_points = []
+        self.route_points = []
         self.matrix = matrix
 
     def load(self, filename):
         with open(filename, 'r') as jfile:
-            self.geo_data = gs.load(jfile)
+            self.geo_data = gs.load(jfile)['coordinates']
             return self
         raise Exception('data is not loaded')
 
     def dump(self, filename):
         with open(filename, 'w') as jfile:
-            feature_convex = gs.Feature(
-                geometry=gs.LineString(self.convex_hull),
-                properties={'label': 'Convex Hull', 'color': '#1e90ff'})
-            feature_center = gs.Feature(
-                geometry=gs.Point(self.geo_center),
-                properties={'label': 'Center of Convex Hull', 'color': '#B22222'})
-            feature_pack = gs.FeatureCollection(
-                [feature_convex, feature_center, self.geo_data])
-            feature_color_point = gs.FeatureCollection(self.color_points)
-            feature_outer_circle = gs.FeatureCollection(self.outer_circle_points)
-            res_feature = gs.FeatureCollection([feature_pack, feature_color_point, feature_outer_circle])
-            gs.dump(res_feature, jfile)
-            return self
+            pass
+            # # Need refactoring
+            # feature_convex = gs.Feature(
+            #     geometry=gs.LineString(self.convex_hull),
+            #     properties={'label': 'Convex Hull', 'color': '#1e90ff'})
+            # feature_center = gs.Feature(
+            #     geometry=gs.Point(self.geo_center),
+            #     properties={'label': 'Center of Convex Hull', 'color': '#B22222'})
+            # feature_pack = gs.FeatureCollection(
+            #     [feature_convex, feature_center, self.geo_data])
+            # feature_color_point = gs.FeatureCollection(self.color_points)
+            # feature_outer_circle = gs.FeatureCollection(self.outer_circle_points)
+            # res_feature = gs.FeatureCollection([feature_pack, feature_color_point, feature_outer_circle])
+            # gs.dump(res_feature, jfile)
+            # return self
         raise Exception('can\'t write convex hull points to file')
 
     def graham(self):
         def rotate(d, a, b, c):
             return (d[b][1] - d[a][1]) * (d[c][0] - d[b][0]) - \
                 (d[b][0] - d[a][0]) * (d[c][1] - d[b][1])
-        coords = self.geo_data['coordinates']
+        coords = self.geo_data
         length = len(coords)
         index = sorted(range(length), key=lambda x: coords[x][0])
         for i in range(2, length):
@@ -77,14 +107,16 @@ class GeoConverter:
             while rotate(coords, cluster_id[-2], cluster_id[-1], index[i]) < 0:
                 del cluster_id[-1]
             cluster_id.append(index[i])
-        self.convex_hull = list(map(lambda x: coords[x], cluster_id))
-        self.convex_hull.append(self.convex_hull[0])
+        self.convex_hull = cluster_id
         return self
 
+    def findCluster(self, a):
+        return self.geo_data.index(a)
+
     def center(self):
-        length = len(self.geo_data['coordinates'])
-        center_c1 = reduce(lambda x, y: x + y, map(lambda x: x[0], self.geo_data['coordinates'])) / length
-        center_c2 = reduce(lambda x, y: x + y, map(lambda x: x[1], self.geo_data['coordinates'])) / length
+        length = len(self.convex_hull)
+        center_c1 = reduce(lambda x, y: x + y, map(lambda x: self.geo_data[x][0], self.convex_hull)) / length
+        center_c2 = reduce(lambda x, y: x + y, map(lambda x: self.geo_data[x][1], self.convex_hull)) / length
         self.geo_center = [center_c1, center_c2]
         return self
 
@@ -97,47 +129,75 @@ class GeoConverter:
         eps = self.radius * initial_coeff
         clusters = []
         while len(clusters) == 0:
-            for index, item in it(self.geo_data['coordinates']):
+            for index, item in it(self.geo_data):
                 dist = getDistance(center, item)
                 if dist < eps:
                     clusters.append(index)
             eps *= eps_multiplier
         return clusters
 
-    def routes(self, count):
+    def findTerminals(self, Nr):
+        def byPairs(a):
+            mid = len(a) // 2
+            for index in range(mid):
+                yield [a[index], a[index+mid]]
         distance = []
         r0 = self.geo_center
         for point in self.convex_hull:
-            r1 = getDistance(r0, point)
+            r1 = getDistance(r0, self.geo_data[point])
             distance.append(r1)
         r1 = self.convex_hull[distance.index(max(distance))]
-        self.radius = getDistance(r0, r1)
+        self.radius = getDistance(r0, self.geo_data[r1])
         self.outer_circle_points = []
-        rnd_color = RandomColor()
-        colors = rnd_color.generate(count=count)
-        # color for clusters on the other side
-        colors += colors
-        ncount = np.arange(0, 360, 360/(2*count))
+        ncount = np.arange(0, 360, 360/(2*Nr))
         for angle in ncount:
             data = getNewCoord(r0, angle, self.radius)
-            self.outer_circle_points.append(
-                gs.Feature(geometry=gs.Point(data), properties={
-                    'label': 'Outer Circle Points', 'color': colors.pop()}))
+            self.outer_circle_points.append(data)
         self.initial_cluster = []
-        for item in self.outer_circle_points:
-            points = self.pointInCircle(item['geometry']['coordinates'])
+        removed = set()
+        for p1, p2 in byPairs(self.outer_circle_points):
+            c1 = self.pointInCircle(p1)
+            c2 = self.pointInCircle(p2)
             # sort list by max people in cluster
-            points.sort(key=lambda x: -matrix.getPeople(x, x))
-            self.initial_cluster.append([
-                points[0], item['geometry']['coordinates'],
-                item['properties']['color']
-            ])
-        for found, cluster, color in self.initial_cluster:
-            destination = self.geo_data['coordinates'][found]
-            self.color_points.append(gs.Feature(
-                geometry=gs.LineString([cluster, destination]),
-                properties={'label': 'Initial clusters', 'color': color}))
-        return self
+            c1.sort(key=lambda x: -matrix.getPeople(x, x))
+            c2.sort(key=lambda x: -matrix.getPeople(x, x))
+            removed.add(c1[0])
+            removed.add(c2[0])
+            self.initial_cluster.append([c1[0], c2[0]])
+        other_clusters = []
+        for item in range(len(self.geo_data)):
+            if item not in removed:
+                other_clusters.append(item)
+        return [self.initial_cluster, other_clusters]
+
+    def routing(self, N_r, C_t, C_nt):
+        RN = []
+        for A, B in C_t:
+            RN.append(Route([A, B], self.geo_data))
+        while C_nt:
+            for index in range(N_r):
+                # 1
+                R_i = RN[index]
+                # 2
+                PN = R_i.pairs()
+                # 3.1
+                RC = []
+                for n_x, n_y in PN:
+                    NewRoutes = []
+                    OldRoute = Route([n_x, n_y], self.geo_data)
+                    # 3.2
+                    for c_j in C_nt:
+                        NewRoutes.append(Route([n_x, c_j, n_y], self.geo_data))
+                    # argmin(|len(n_x, n_y) - len(n_x, c_j, n_y)|)
+                    NewRoutes.sort(key=lambda x: abs(OldRoute.distance-x.distance))
+                    # 3.3
+                    RC.append(NewRoutes[0])
+                # code in progress
+                # 4
+                # 5
+                # 6
+                # 7
+        return RN
 
 if __name__ == '__main__':
     # badcode! please update!
@@ -145,5 +205,8 @@ if __name__ == '__main__':
     matrix = Clusters()
     matrix.generateMatrix('./data/100_p.js', './data/ways.js')
     data = GeoConverter(matrix)
-    data.load('./data/geoJSON.json').graham().center().routes(12)
-    data.dump('./convex-hull.json')
+    data.load('./data/geoJSON.json').graham().center()
+    N_r = 12
+    C_t, C_nt = data.findTerminals(N_r)
+    RN = data.routing(N_r, C_t, C_nt)
+    # data.dump('./convex-hull.json')
