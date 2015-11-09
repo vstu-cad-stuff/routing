@@ -31,11 +31,17 @@ def getNewCoord(a, azimut, radius):
     return [lst['lon2'], lst['lat2']]
 
 
+def itIndexData(data):
+    for index in range(len(data)):
+        yield [index, data[index]]
+
+
 class Route:
-    def __init__(self, index, coord):
+    def __init__(self, index, coord, key=0):
         self.coord = coord
         self.index = index
         self.len = len(index)
+        self.key = key
         self.distance = self.distance()
 
     def distance(self):
@@ -110,8 +116,20 @@ class GeoConverter:
         self.convex_hull = cluster_id
         return self
 
-    def findCluster(self, a):
-        return self.geo_data.index(a)
+    def findCluster(self, obj):
+        return self.geo_data.index(obj)
+
+    def indexToCoord(self, obj):
+        route = []
+        for index in obj:
+            route.append(self.geo_data[index])
+        return route
+
+    def coordToIndex(self, obj):
+        route = []
+        for coord in obj:
+            route.append(self.findCluster(coord))
+        return route
 
     def center(self):
         length = len(self.convex_hull)
@@ -121,15 +139,12 @@ class GeoConverter:
         return self
 
     def pointInCircle(self, center):
-        def it(data):
-            for index in range(len(data)):
-                yield [index, data[index]]
         initial_coeff = 0.05
         eps_multiplier = 1.5
         eps = self.radius * initial_coeff
         clusters = []
         while len(clusters) == 0:
-            for index, item in it(self.geo_data):
+            for index, item in itIndexData(self.geo_data):
                 dist = getDistance(center, item)
                 if dist < eps:
                     clusters.append(index)
@@ -176,27 +191,33 @@ class GeoConverter:
             RN.append(Route([A, B], self.geo_data))
         while C_nt:
             for index in range(N_r):
-                # 1
+                # step 1
                 R_i = RN[index]
-                # 2
+                # step 2
                 PN = R_i.pairs()
-                # 3.1
+                # step 3.1
                 RC = []
+                # step 3
                 for n_x, n_y in PN:
                     NewRoutes = []
                     OldRoute = Route([n_x, n_y], self.geo_data)
-                    # 3.2
-                    for c_j in C_nt:
-                        NewRoutes.append(Route([n_x, c_j, n_y], self.geo_data))
-                    # argmin(|len(n_x, n_y) - len(n_x, c_j, n_y)|)
-                    NewRoutes.sort(key=lambda x: abs(OldRoute.distance-x.distance))
-                    # 3.3
+                    # step 3.2
+                    for j, c_j in itIndexData(C_nt):
+                        NewRoutes.append([j, Route([n_x, c_j, n_y], self.geo_data)])
+                    # j = argmin(|len(n_x, n_y) - len(n_x, c_j, n_y)|)
+                    NewRoutes.sort(key=lambda x: abs(OldRoute.distance-x[1].distance))
+                    # step 3.3
                     RC.append(NewRoutes[0])
-                # code in progress
-                # 4
-                # 5
-                # 6
-                # 7
+                # step 4
+                # RCC <-- [Route(...), ...]
+                # step 5
+                RCC.sort(key=lambda x: x.distance)
+                # R*_i = RCC[0]
+                # step 6
+                RN[index] = RCC[0]
+                # step 7
+                # RCC[0].key --> j
+                del C_nt[RCC[0].key]
         return RN
 
 if __name__ == '__main__':
