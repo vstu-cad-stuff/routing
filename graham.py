@@ -37,28 +37,39 @@ def itIndexData(data):
 
 
 class Route:
-    def __init__(self, index, coord, key=0):
+    def __init__(self, ids, coord, key=0):
         self.coord = coord
-        self.index = index
-        self.len = len(index)
+        self.ids = ids
         self.key = key
         self.distance = self.distance()
 
     def distance(self):
         viaroute = SERVER_URL + 'viaroute?alt=false&geometry=false'
-        for item in self.index:
+        for item in self.ids:
             viaroute += '&loc={},{}'.format(self.coord[item][1], self.coord[item][0])
         req = js.loads(requests.get(viaroute).text)
         return req['route_summary']['total_distance']
 
+    def __getitem__(self, index):
+        return self.ids[index]
+
+    def __setitem__(self, index, value):
+        self.ids[index] = value
+
+    def index(self, value):
+        return self.ids.index(value)
+
+    def insert(self, index, value):
+        self.ids.insert(index, value)
+
     def pairs(self):
         pair = []
-        for index in range(self.len-1):
-            pair.append([self.index[index+0], self.index[index+1]])
+        for index in range(len(self.ids)-1):
+            pair.append([self.ids[index+0], self.ids[index+1]])
         return pair
 
     def __str__(self):
-        return '{} : {}'.format(self.index, self.distance)
+        return '[{}] {} : {}'.format(self.key, self.ids, self.distance)
 
 
 class GeoConverter:
@@ -133,8 +144,10 @@ class GeoConverter:
 
     def center(self):
         length = len(self.convex_hull)
-        center_c1 = reduce(lambda x, y: x + y, map(lambda x: self.geo_data[x][0], self.convex_hull)) / length
-        center_c2 = reduce(lambda x, y: x + y, map(lambda x: self.geo_data[x][1], self.convex_hull)) / length
+        center_c1 = reduce(lambda x, y: x + y, map(
+            lambda x: self.geo_data[x][0], self.convex_hull)) / length
+        center_c2 = reduce(lambda x, y: x + y, map(
+            lambda x: self.geo_data[x][1], self.convex_hull)) / length
         self.geo_center = [center_c1, center_c2]
         return self
 
@@ -191,9 +204,13 @@ class GeoConverter:
             RN.append(Route([A, B], self.geo_data))
         while C_nt:
             for index in range(N_r):
+                # check `C_nt`
+                if C_nt == []:
+                    break
                 # step 1
                 R_i = RN[index]
                 # step 2
+                # странно работает
                 PN = R_i.pairs()
                 # step 3.1
                 RC = []
@@ -203,20 +220,29 @@ class GeoConverter:
                     OldRoute = Route([n_x, n_y], self.geo_data)
                     # step 3.2
                     for j, c_j in itIndexData(C_nt):
-                        NewRoutes.append([j, Route([n_x, c_j, n_y], self.geo_data)])
+                        NewRoutes.append(Route([n_x, c_j, n_y], self.geo_data, key=j))
                     # j = argmin(|len(n_x, n_y) - len(n_x, c_j, n_y)|)
-                    NewRoutes.sort(key=lambda x: abs(OldRoute.distance-x[1].distance))
+                    NewRoutes.sort(key=lambda x: abs(OldRoute.distance-x.distance))
                     # step 3.3
                     RC.append(NewRoutes[0])
-                # step 4
-                # RCC <-- [Route(...), ...]
-                # step 5
+                # step 4 (modified)
+                RCC = []
+                for item in RC:
+                    # get 'insert' node
+                    add_node = item[1]
+                    # find index `item` in R_i
+                    idx = R_i.index(item[0]) + 1
+                    # copy `R_i` data to `new_route`
+                    new_route = R_i.ids
+                    # insert `add_node` to `new_route`
+                    new_route.insert(idx, add_node)
+                    # add `new_route` to `RCC`
+                    RCC.append(Route(new_route, self.geo_data, key=item.key))
+                # step 5: sort by ascending
                 RCC.sort(key=lambda x: x.distance)
-                # R*_i = RCC[0]
-                # step 6
+                # step 6: replace `RN` element by `RCC`
                 RN[index] = RCC[0]
-                # step 7
-                # RCC[0].key --> j
+                # step 7: remove `C_nt` element by `RCC` key (node indexing)
                 del C_nt[RCC[0].key]
         return RN
 
@@ -230,4 +256,6 @@ if __name__ == '__main__':
     N_r = 12
     C_t, C_nt = data.findTerminals(N_r)
     RN = data.routing(N_r, C_t, C_nt)
+    for index, data in itIndexData(RN):
+        print('{:04} -- {}'.format(index, data))
     # data.dump('./convex-hull.json')
