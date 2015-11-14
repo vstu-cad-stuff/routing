@@ -3,6 +3,7 @@ from auxiliary import swapByIndex
 from randomcolor.randomcolor import RandomColor
 from geographiclib.geodesic import Geodesic
 from data_loader import Clusters
+from copy import deepcopy
 import requests
 import numpy as np
 import geojson as gs
@@ -207,10 +208,9 @@ class GeoConverter:
                 # check `C_nt`
                 if C_nt == []:
                     break
-                # step 1
-                R_i = RN[index]
+                # step 1 (hard copy)
+                R_i = deepcopy(RN[index])
                 # step 2
-                # странно работает
                 PN = R_i.pairs()
                 # step 3.1
                 RC = []
@@ -232,8 +232,8 @@ class GeoConverter:
                     add_node = item[1]
                     # find index `item` in R_i
                     idx = R_i.index(item[0]) + 1
-                    # copy `R_i` data to `new_route`
-                    new_route = R_i.ids
+                    # hard copy `R_i` data to `new_route`
+                    new_route = deepcopy(R_i.ids)
                     # insert `add_node` to `new_route`
                     new_route.insert(idx, add_node)
                     # add `new_route` to `RCC`
