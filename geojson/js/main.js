@@ -1,5 +1,5 @@
 var geoJSON_layer = new L.geoJson();
-$.getJSON('./js/convex-hull.json', function(data) {
+$.getJSON('./js/results.json', function(data) {
     geoJSON_layer = L.geoJson(data, {
         style: function(feature) {
             if (feature.properties.color) {
