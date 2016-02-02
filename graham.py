@@ -246,16 +246,37 @@ class GeoConverter:
                 del C_nt[RCC[0].key]
         return RN
 
+
+def dump(list_data, data, filename):
+    with open(filename, 'w') as jfile:
+        rnd_color = RandomColor()
+        colors = rnd_color.generate(count=len(list_data))
+        # print(colors)
+        features = []
+        index = 1
+        features.append(gs.MultiPoint(data.geo_data))
+        for item in list_data:
+            color = colors.pop()
+            terminal = [item[0], item[-1]]
+            coords = gs.Feature(geometry=gs.LineString(data.indexToCoord(item)),
+                properties={'label': 'Route #{}'.format(index+1), 'color': color})
+            term = gs.Feature(geometry=gs.MultiPoint(data.indexToCoord(terminal)),
+                properties={'label': 'Terminal #{}'.format(index+1), 'color': color})
+            index += 1
+            features.append(coords)
+            features.append(term)
+        feature_r = gs.FeatureCollection([features])
+        gs.dump(features, jfile)
+
 if __name__ == '__main__':
     # badcode! please update!
     # rewrite data_loader module
     matrix = Clusters()
     matrix.generateMatrix('./data/100_p.js', './data/ways.js')
-    data = GeoConverter(matrix)
-    data.load('./data/geoJSON.json').graham().center()
+    data = GeoConverter(matrix).load('./data/geoJSON.json').graham().center()
     N_r = 12
     C_t, C_nt = data.findTerminals(N_r)
     RN = data.routing(N_r, C_t, C_nt)
-    for index, data in itIndexData(RN):
-        print('{:04} -- {}'.format(index, data))
-    # data.dump('./convex-hull.json')
+    for index, item in itIndexData(RN):
+        print('{:04} -- {}'.format(index, item))
+    dump(RN, data, './result.json')
