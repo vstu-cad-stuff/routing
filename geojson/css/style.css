@@ -10,3 +10,20 @@ body {
     bottom: 0;
     width: 100%;
 }
+#slider {
+    height: 50px;
+    width: 300px;
+    margin-left: 10px;
+    bottom: 10px;
+    position: absolute;
+    background-color: #fff;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, .65);
+    text-align: center;
+    overflow: hidden;
+    z-index: 1;
+    border-radius: 5px;
+}
+#slider p {
+    width: auto;
+    display: inline-block;
+}
