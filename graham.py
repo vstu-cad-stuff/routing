@@ -228,9 +228,9 @@ class GeoConverter:
                 # step 4 (modified)
                 RCC = []
                 for item in RC:
-                    # get 'insert' node
+                    # get 'insert' node from RC: [item[0], >>item[1]<<, item[2]]
                     add_node = item[1]
-                    # find index `item` in R_i
+                    # find index `item` in R_i: [.., item[0], item[2], ...]
                     idx = R_i.index(item[0]) + 1
                     # hard copy `R_i` data to `new_route`
                     new_route = deepcopy(R_i.ids)
