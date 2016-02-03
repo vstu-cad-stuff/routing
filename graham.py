@@ -8,6 +8,7 @@ import requests
 import numpy as np
 import geojson as gs
 import json as js
+import datetime as dt
 
 SERVER_URL = 'http://oriole.strategway.com:5000/'
 
@@ -86,6 +87,20 @@ class GeoConverter:
     def load(self, filename):
         with open(filename, 'r') as jfile:
             self.geo_data = gs.load(jfile)['coordinates']
+            return self
+        raise Exception('data is not loaded')
+
+    def load_raw(self, filename):
+        with open(filename, 'r') as jfile:
+            self.geo_data = []
+            raw_points = jfile.readlines()
+            for string in raw_points:
+                data = string.split(',')
+                if len(data) < 3:
+                    continue
+                data_1 = float(data[1].replace('[', ''))
+                data_0 = float(data[0].replace('[', ''))
+                self.geo_data.append([data_1, data_0])
             return self
         raise Exception('data is not loaded')
 
@@ -271,12 +286,19 @@ def dump(list_data, data, filename):
 if __name__ == '__main__':
     # badcode! please update!
     # rewrite data_loader module
+    route_name = [100, 150, 200, 300]
     matrix = Clusters()
-    matrix.generateMatrix('./data/100_p.js', './data/ways.js')
-    data = GeoConverter(matrix).load('./data/geoJSON.json').graham().center()
-    N_r = 12
-    C_t, C_nt = data.findTerminals(N_r)
-    RN = data.routing(N_r, C_t, C_nt)
-    for index, item in itIndexData(RN):
-        print('{:04} -- {}'.format(index, item))
-    dump(RN, data, './result.json')
+    for name in route_name:
+        for N_r in range(8, 20, 2):
+            print('{} >> data {}_p.js for N_r count {}'.format(dt.datetime.now(), name, N_r))
+            matrix.generateMatrix('./data/{}_p.js'.format(name), './data/ways.js')
+            data = GeoConverter(matrix).load_raw('./data/{}_c.js'.format(name)).graham().center()
+            print('{} >> data loaded ... ok'.format(dt.datetime.now()))
+            C_t, C_nt = data.findTerminals(N_r)
+            print('{} >> terminals founded ... ok'.format(dt.datetime.now()))
+            RN = data.routing(N_r, C_t, C_nt)
+            print('{} >> generated route ... ok'.format(dt.datetime.now()))
+            for index, item in itIndexData(RN):
+                print('{:04} -- {}'.format(index, item))
+            print('{} >> data saved in ./article/result-{}-{}.json'.format(dt.datetime.now(), name, N_r))
+            dump(RN, data, './article/result-{}-{}.json'.format(name, N_r))
