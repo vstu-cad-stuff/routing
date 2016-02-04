@@ -2,6 +2,7 @@ from functools import reduce
 from auxiliary import swapByIndex
 from randomcolor.randomcolor import RandomColor
 from geographiclib.geodesic import Geodesic
+from polyline.codec import PolylineCodec
 from data_loader import Clusters
 from copy import deepcopy
 import requests
@@ -51,6 +52,15 @@ class Route:
             viaroute += '&loc={},{}'.format(self.coord[item][1], self.coord[item][0])
         req = js.loads(requests.get(viaroute).text)
         return req['route_summary']['total_distance']
+
+    def route(self):
+        viaroute = SERVER_URL + 'viaroute?alt=false&geometry=true'
+        for item in self.ids:
+            viaroute += '&loc={},{}'.format(self.coord[item][1], self.coord[item][0])
+        req = js.loads(requests.get(viaroute).text)
+        return list(map(
+            lambda x: [x[1] / 10.0, x[0] / 10.0], PolylineCodec().decode(req['route_geometry'])
+        ))
 
     def __getitem__(self, index):
         return self.ids[index]
@@ -273,7 +283,9 @@ def dump(list_data, data, filename):
         for item in list_data:
             color = colors.pop()
             terminal = [item[0], item[-1]]
-            coords = gs.Feature(geometry=gs.LineString(data.indexToCoord(item)),
+            # get route coords by road
+            RP = item.route()
+            coords = gs.Feature(geometry=gs.LineString(RP),
                 properties={'label': 'Route #{}'.format(index+1), 'color': color})
             term = gs.Feature(geometry=gs.MultiPoint(data.indexToCoord(terminal)),
                 properties={'label': 'Terminal #{}'.format(index+1), 'color': color})
@@ -284,8 +296,6 @@ def dump(list_data, data, filename):
         gs.dump(features, jfile)
 
 if __name__ == '__main__':
-    # badcode! please update!
-    # rewrite data_loader module
     route_name = [100, 150, 200, 300]
     matrix = Clusters()
     for name in route_name:
