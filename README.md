@@ -1,5 +1,8 @@
-Routing Project
+[Routing Project](https://vstu-cad-stuff.github.io/routing/)
 ===============
+
+[Карта с последними данными](https://vstu-cad-stuff.github.io/routing/geojson/)
+
 ### Старый функционал
 * [correspondence_counter.py](src/correspondence_counter.py): скрипт для подсчёта матрицы корреспонденций
 * [correspondence_draw.py](src/correspondence_draw.py): скрипт для отрисовки матрицы корреспонденций
@@ -13,7 +16,11 @@ Routing Project
 ----
 
 ### Новый функционал
-* [main_algorithm.py](main_algorithm.py): главный модуль по построению маршрута
+* [main_algorithm.py](main_algorithm.py): модуль по построению маршрута на основе генетических алгоритмов
 * [auxiliary.py](auxiliary.py): модуль со вспомогательными функциями
 * [data_loader.py](data_loader.py): модуль по загрузке данных из файлов
 * [greedy_algorythm.py](greedy_algorithm.py): модуль реализующий 'жадный' алгоритм
+* [graham.py](graham.py): модулья по построению маршрутов на основе нескольких алгоритмов
+ * выпуклая оболочка по [алгоритм Грэхема](https://ru.wikipedia.org/wiki/Алгоритм_Грэхема)
+ * поиск терминальных кластеров по принадлежности точки к окружности
+ * построение маршрутов по [следующему алгоритму](https://docs.google.com/document/d/1c-BmRMmi4ao1p-muU8SLxFz1QyGHmu_mYOXHvDBXHcQ)
