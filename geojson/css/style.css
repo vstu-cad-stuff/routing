@@ -10,20 +10,20 @@ body {
     bottom: 0;
     width: 100%;
 }
-#slider {
-    height: 50px;
-    width: 300px;
-    margin-left: 10px;
-    bottom: 10px;
-    position: absolute;
-    background-color: #fff;
-    box-shadow: 0 1px 5px rgba(0, 0, 0, .65);
-    text-align: center;
-    overflow: hidden;
-    z-index: 1;
+.slider, .info {
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
     border-radius: 5px;
 }
-#slider p {
-    width: auto;
+.slider h4 {
+    margin: 0 5px;
     display: inline-block;
+    color: #777;
+}
+.info h4 {
+    margin: 0 0 5px;
+    color: #777;
 }
