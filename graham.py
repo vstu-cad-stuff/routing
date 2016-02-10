@@ -1,6 +1,7 @@
 from functools import reduce
 from auxiliary import swapByIndex
 from randomcolor.randomcolor import RandomColor
+from multiprocessing.dummy import Pool as ThreadPool
 from geographiclib.geodesic import Geodesic
 from polyline.codec import PolylineCodec
 from data_loader import Clusters
@@ -44,7 +45,7 @@ class Route:
         self.coord = coord
         self.ids = ids
         self.key = key
-        self.distance = self.distance()
+        self.dist = self.distance()
 
     def distance(self):
         viaroute = SERVER_URL + 'viaroute?alt=false&geometry=false'
@@ -81,7 +82,7 @@ class Route:
         return pair
 
     def __str__(self):
-        return '[{}] {} : {}'.format(self.key, self.ids, self.distance)
+        return '[{}] {} : {}'.format(self.key, self.ids, self.dist)
 
 
 class GeoConverter:
@@ -225,9 +226,51 @@ class GeoConverter:
         return [self.initial_cluster, other_clusters]
 
     def routing(self, N_r, C_t, C_nt):
+        def new_route(item, etc):
+            NewRoutes = []
+            # unpacking data
+            C_nt, geo_data = etc[0], etc[1]
+            n_x, n_y = item[0], item[1]
+            OldRoute = Route([n_x, n_y], geo_data)
+            # step 3.2
+            for j, c_j in itIndexData(C_nt):
+                NewRoutes.append(Route([n_x, c_j, n_y], geo_data, key=j))
+            # j = argmin(|len(n_x, n_y) - len(n_x, c_j, n_y)|)
+            NewRoutes.sort(key=lambda x: abs(OldRoute.dist-x.dist))
+            # step 3.3
+            return NewRoutes[0]
+
+        def build_route(item, etc):
+            R_i, geo_data = etc[0], etc[1]
+            # get 'insert' node from RC: [item[0], >>item[1]<<, item[2]]
+            add_node = item[1]
+            # find index `item` in R_i: [.., item[0], item[2], ...]
+            idx = R_i.index(item[0]) + 1
+            # hard copy `R_i` data to `new_route`
+            new_route = deepcopy(R_i.ids)
+            # insert `add_node` to `new_route`
+            new_route.insert(idx, add_node)
+            # add `new_route` to `RCC`
+            return Route(new_route, geo_data, key=item.key)
+
+        def async_worker(pool, iterator, func, data):
+            thread_list = []
+            result = []
+            for item in iterator:
+                # create job for new_route function
+                thread = pool.apply_async(func, (item, data))
+                # add thread in list
+                thread_list.append(thread)
+            for thread in thread_list:
+                # get result of job
+                result.append(thread.get())
+            return result
         RN = []
-        for A, B in C_t:
-            RN.append(Route([A, B], self.geo_data))
+        thread_list = []
+        # create 8 threads
+        pool = ThreadPool(processes=8)
+        # create initialization routes
+        RN = async_worker(pool, C_t, lambda a, b: Route(a, b), (self.geo_data))
         while C_nt:
             for index in range(N_r):
                 # check `C_nt`
@@ -237,38 +280,17 @@ class GeoConverter:
                 R_i = deepcopy(RN[index])
                 # step 2
                 PN = R_i.pairs()
-                # step 3.1
-                RC = []
-                # step 3
-                for n_x, n_y in PN:
-                    NewRoutes = []
-                    OldRoute = Route([n_x, n_y], self.geo_data)
-                    # step 3.2
-                    for j, c_j in itIndexData(C_nt):
-                        NewRoutes.append(Route([n_x, c_j, n_y], self.geo_data, key=j))
-                    # j = argmin(|len(n_x, n_y) - len(n_x, c_j, n_y)|)
-                    NewRoutes.sort(key=lambda x: abs(OldRoute.distance-x.distance))
-                    # step 3.3
-                    RC.append(NewRoutes[0])
-                # step 4 (modified)
-                RCC = []
-                for item in RC:
-                    # get 'insert' node from RC: [item[0], >>item[1]<<, item[2]]
-                    add_node = item[1]
-                    # find index `item` in R_i: [.., item[0], item[2], ...]
-                    idx = R_i.index(item[0]) + 1
-                    # hard copy `R_i` data to `new_route`
-                    new_route = deepcopy(R_i.ids)
-                    # insert `add_node` to `new_route`
-                    new_route.insert(idx, add_node)
-                    # add `new_route` to `RCC`
-                    RCC.append(Route(new_route, self.geo_data, key=item.key))
+                # step 3, 3.1, 3.3
+                RC = async_worker(pool, PN, new_route, (C_nt, self.geo_data))
+                # step 4
+                RCC = async_worker(pool, RC, build_route, (R_i, self.geo_data))
                 # step 5: sort by ascending
-                RCC.sort(key=lambda x: x.distance)
+                RCC.sort(key=lambda x: x.dist)
                 # step 6: replace `RN` element by `RCC`
                 RN[index] = RCC[0]
                 # step 7: remove `C_nt` element by `RCC` key (node indexing)
                 del C_nt[RCC[0].key]
+        pool.close()
         return RN
 
 
