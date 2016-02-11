@@ -35,6 +35,11 @@ def getNewCoord(a, azimut, radius):
     return [lst['lon2'], lst['lat2']]
 
 
+def itIndexDict(data):
+    for index in data.keys():
+        yield [index, data[index]]
+
+
 def itIndexData(data):
     for index in range(len(data)):
         yield [index, data[index]]
@@ -97,21 +102,26 @@ class GeoConverter:
 
     def load(self, filename):
         with open(filename, 'r') as jfile:
-            self.geo_data = gs.load(jfile)['coordinates']
+            # self.geo_data = gs.load(jfile)['coordinates']
+            i = 0
+            for item in gs.load(jfile)['coordinates']:
+                self.geo_data[i] = item
+                i += 1
             return self
         raise Exception('data is not loaded')
 
     def load_raw(self, filename):
         with open(filename, 'r') as jfile:
-            self.geo_data = []
+            self.geo_data = {}
             raw_points = jfile.readlines()
             for string in raw_points:
                 data = string.split(',')
                 if len(data) < 3:
                     continue
+                data_2 = int(data[2].replace(']', ''))
                 data_1 = float(data[1].replace('[', ''))
                 data_0 = float(data[0].replace('[', ''))
-                self.geo_data.append([data_1, data_0])
+                self.geo_data[data_2] = [data_1, data_0]
             return self
         raise Exception('data is not loaded')
 
@@ -140,7 +150,7 @@ class GeoConverter:
                 (d[b][0] - d[a][0]) * (d[c][1] - d[b][1])
         coords = self.geo_data
         length = len(coords)
-        index = sorted(range(length), key=lambda x: coords[x][0])
+        index = sorted(coords.keys(), key=lambda x: coords[x][0])
         for i in range(2, length):
             j = i
             while (j > 1) and (rotate(coords, index[0], index[j-1], index[j]) < 0):
@@ -155,7 +165,7 @@ class GeoConverter:
         return self
 
     def findCluster(self, obj):
-        return self.geo_data.index(obj)
+        return list(self.geo_data.keys())[list(self.geo_data.values()).index(obj)]
 
     def indexToCoord(self, obj):
         route = []
@@ -184,7 +194,7 @@ class GeoConverter:
         eps = self.radius * initial_coeff
         clusters = []
         while len(clusters) == 0:
-            for index, item in itIndexData(self.geo_data):
+            for index, item in itIndexDict(self.geo_data):
                 dist = getDistance(center, item)
                 if dist < eps:
                     clusters.append(index)
@@ -220,7 +230,7 @@ class GeoConverter:
             removed.add(c2[0])
             self.initial_cluster.append([c1[0], c2[0]])
         other_clusters = []
-        for item in range(len(self.geo_data)):
+        for item in self.geo_data.keys():
             if item not in removed:
                 other_clusters.append(item)
         return [self.initial_cluster, other_clusters]
@@ -301,7 +311,7 @@ def dump(list_data, data, filename):
         # print(colors)
         features = []
         index = 1
-        features.append(gs.MultiPoint(data.geo_data))
+        features.append(gs.MultiPoint(list(data.geo_data.values())))
         for item in list_data:
             color = colors.pop()
             terminal = [item[0], item[-1]]
@@ -319,18 +329,26 @@ def dump(list_data, data, filename):
 
 if __name__ == '__main__':
     route_name = [100, 150, 200, 300]
+    route_dist = []
     matrix = Clusters()
     for name in route_name:
+        print('{} >> loading data {}_p.js'.format(dt.datetime.now(), name))
+        matrix.generateMatrix('./data/{}_p.js'.format(name), './data/ways.js')
+        data = GeoConverter(matrix).load_raw('./data/{}_c.js'.format(name)).graham().center()
+        print('{} >> data loaded ... ok'.format(dt.datetime.now()))
         for N_r in range(8, 20, 2):
-            print('{} >> data {}_p.js for N_r count {}'.format(dt.datetime.now(), name, N_r))
-            matrix.generateMatrix('./data/{}_p.js'.format(name), './data/ways.js')
-            data = GeoConverter(matrix).load_raw('./data/{}_c.js'.format(name)).graham().center()
-            print('{} >> data loaded ... ok'.format(dt.datetime.now()))
             C_t, C_nt = data.findTerminals(N_r)
-            print('{} >> terminals founded ... ok'.format(dt.datetime.now()))
+            print('{} >> {} terminals founded ... ok'.format(dt.datetime.now(), N_r))
             RN = data.routing(N_r, C_t, C_nt)
             print('{} >> generated route ... ok'.format(dt.datetime.now()))
+            current = []
             for index, item in itIndexData(RN):
                 print('{:04} -- {}'.format(index, item))
+                current.append(item.dist)
             print('{} >> data saved in ./article/result-{}-{}.json'.format(dt.datetime.now(), name, N_r))
             dump(RN, data, './article/result-{}-{}.json'.format(name, N_r))
+            route_dist.append(current)
+    print('distances = [\n')
+    for item in route_dist:
+        print('{},'.format(item))
+    print('];')
