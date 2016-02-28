@@ -5,15 +5,21 @@ from multiprocessing.dummy import Pool as ThreadPool
 from geographiclib.geodesic import Geodesic
 from polyline.codec import PolylineCodec
 from data_loader import Clusters
+from re import sub, compile
 from copy import deepcopy
 import requests
 import numpy as np
 import geojson as gs
 import json as js
 import datetime as dt
+import sys
+import os
 
-SERVER_URL = 'http://oriole.strategway.com:5000/'
+SERVER_URL = 'http://79.170.167.101:5000/'
+THREAD_COUNT = 8
 
+# thread THREAD_COUNT thread pool
+POOL = ThreadPool(processes=THREAD_COUNT)
 
 # function: calculate distance from a to b
 # input:
@@ -45,24 +51,62 @@ def itIndexData(data):
         yield [index, data[index]]
 
 
+def async_worker(iterator, func, data):
+    thread_list = []
+    result = []
+    for item in iterator:
+        # create job for new_route function
+        thread = POOL.apply_async(func, (item, data))
+        # add thread in list
+        thread_list.append(thread)
+    for thread in thread_list:
+        # get result of job
+        result.append(thread.get())
+    return result
+
+
 class Route:
-    def __init__(self, ids, coord, key=0):
+    def __init__(self, ids, coord, key=0, metric=1):
         self.coord = coord
         self.ids = ids
         self.key = key
-        self.dist = self.distance()
+        if metric == 0:
+            self.dist = self.node()
+        else:
+            self.dist = self.distance()
 
+    # graph metric
+    def node(self):
+        result_distance = 0
+        for index in range(1, len(self.ids)):
+            a = self.coord.get(self.ids[index-1])
+            b = self.coord.get(self.ids[index+0])
+            result_distance += getDistance(a, b)
+        return result_distance
+
+    # osrm metric
     def distance(self):
         viaroute = SERVER_URL + 'viaroute?alt=false&geometry=false'
         for item in self.ids:
-            viaroute += '&loc={},{}'.format(self.coord[item][1], self.coord[item][0])
+            try:
+                coords = self.coord.get(item)
+                viaroute += '&loc={},{}'.format(coords[1], coords[0])
+            except:
+                print('>> note {} not found!'.format(item))
+                sys.exit()
         req = js.loads(requests.get(viaroute).text)
         return req['route_summary']['total_distance']
 
+    # route with geometry
     def route(self):
         viaroute = SERVER_URL + 'viaroute?alt=false&geometry=true'
         for item in self.ids:
-            viaroute += '&loc={},{}'.format(self.coord[item][1], self.coord[item][0])
+            try:
+                coords = self.coord.get(item)
+                viaroute += '&loc={},{}'.format(coords[1], coords[0])
+            except:
+                print('>> note {} not found!'.format(item))
+                sys.exit()
         req = js.loads(requests.get(viaroute).text)
         return list(map(
             lambda x: [x[1] / 10.0, x[0] / 10.0], PolylineCodec().decode(req['route_geometry'])
@@ -206,34 +250,33 @@ class GeoConverter:
             mid = len(a) // 2
             for index in range(mid):
                 yield [a[index], a[index+mid]]
-        distance = []
+
+        def pairing(item, etc):
+            p1, p2 = item
+            c1 = etc.pointInCircle(p1)
+            c2 = etc.pointInCircle(p2)
+            # sort list by max people in cluster
+            c1.sort(key=lambda x: -matrix.getPeople(x, x))
+            c2.sort(key=lambda x: -matrix.getPeople(x, x))
+            return [c1[0], c2[0]]
+
         r0 = self.geo_center
-        for point in self.convex_hull:
-            r1 = getDistance(r0, self.geo_data[point])
-            distance.append(r1)
+        distance = async_worker(self.convex_hull, lambda a, b: getDistance(r0, b[a]), (self.geo_data))
         r1 = self.convex_hull[distance.index(max(distance))]
         self.radius = getDistance(r0, self.geo_data[r1])
         self.outer_circle_points = []
         ncount = np.arange(0, 360, 360/(2*Nr))
-        for angle in ncount:
-            data = getNewCoord(r0, angle, self.radius)
-            self.outer_circle_points.append(data)
-        self.initial_cluster = []
-        removed = set()
-        for p1, p2 in byPairs(self.outer_circle_points):
-            c1 = self.pointInCircle(p1)
-            c2 = self.pointInCircle(p2)
-            # sort list by max people in cluster
-            c1.sort(key=lambda x: -matrix.getPeople(x, x))
-            c2.sort(key=lambda x: -matrix.getPeople(x, x))
-            removed.add(c1[0])
-            removed.add(c2[0])
-            self.initial_cluster.append([c1[0], c2[0]])
+        self.outer_circle_points = async_worker(ncount, lambda a, b: getNewCoord(b[0], a, b[1]), (r0, self.radius))
+        self.initial_cluster = async_worker(byPairs(self.outer_circle_points), pairing, (self))
+        remove = set()
+        for item in self.initial_cluster:
+            remove.add(item[0])
+            remove.add(item[1])
         other_clusters = []
         for item in self.geo_data.keys():
-            if item not in removed:
+            if item not in remove:
                 other_clusters.append(item)
-        return [self.initial_cluster, other_clusters]
+        return self.initial_cluster, other_clusters
 
     def routing(self, N_r, C_t, C_nt):
         def new_route(item, etc):
@@ -263,24 +306,10 @@ class GeoConverter:
             # add `new_route` to `RCC`
             return Route(new_route, geo_data, key=item.key)
 
-        def async_worker(pool, iterator, func, data):
-            thread_list = []
-            result = []
-            for item in iterator:
-                # create job for new_route function
-                thread = pool.apply_async(func, (item, data))
-                # add thread in list
-                thread_list.append(thread)
-            for thread in thread_list:
-                # get result of job
-                result.append(thread.get())
-            return result
         RN = []
         thread_list = []
-        # create 8 threads
-        pool = ThreadPool(processes=8)
         # create initialization routes
-        RN = async_worker(pool, C_t, lambda a, b: Route(a, b), (self.geo_data))
+        RN = async_worker(C_t, lambda a, b: Route(a, b), (self.geo_data))
         while C_nt:
             for index in range(N_r):
                 # check `C_nt`
@@ -291,24 +320,22 @@ class GeoConverter:
                 # step 2
                 PN = R_i.pairs()
                 # step 3, 3.1, 3.3
-                RC = async_worker(pool, PN, new_route, (C_nt, self.geo_data))
+                RC = async_worker(PN, new_route, (C_nt, self.geo_data))
                 # step 4
-                RCC = async_worker(pool, RC, build_route, (R_i, self.geo_data))
+                RCC = async_worker(RC, build_route, (R_i, self.geo_data))
                 # step 5: sort by ascending
                 RCC.sort(key=lambda x: x.dist)
                 # step 6: replace `RN` element by `RCC`
                 RN[index] = RCC[0]
                 # step 7: remove `C_nt` element by `RCC` key (node indexing)
                 del C_nt[RCC[0].key]
-        pool.close()
         return RN
 
 
-def dump(list_data, data, filename):
+def dump(list_data, data, filename, geometry='route'):
     with open(filename, 'w') as jfile:
         rnd_color = RandomColor()
         colors = rnd_color.generate(count=len(list_data))
-        # print(colors)
         features = []
         index = 1
         features.append(gs.MultiPoint(list(data.geo_data.values())))
@@ -316,7 +343,12 @@ def dump(list_data, data, filename):
             color = colors.pop()
             terminal = [item[0], item[-1]]
             # get route coords by road
-            RP = item.route()
+            if geometry == 'graph':
+                # graph geometry
+                RP = data.indexToCoord(item)
+            else:
+                # osrm geometry
+                RP = item.route()
             coords = gs.Feature(geometry=gs.LineString(RP),
                 properties={'label': 'Route #{}'.format(index+1), 'color': color})
             term = gs.Feature(geometry=gs.MultiPoint(data.indexToCoord(terminal)),
@@ -329,6 +361,7 @@ def dump(list_data, data, filename):
 
 if __name__ == '__main__':
     route_name = [100, 150, 200, 300]
+    N_count = range(8, 20, 2)
     route_dist = []
     matrix = Clusters()
     for name in route_name:
@@ -336,8 +369,28 @@ if __name__ == '__main__':
         matrix.generateMatrix('./data/{}_p.js'.format(name), './data/ways.js')
         data = GeoConverter(matrix).load_raw('./data/{}_c.js'.format(name)).graham().center()
         print('{} >> data loaded ... ok'.format(dt.datetime.now()))
-        for N_r in range(8, 20, 2):
-            C_t, C_nt = data.findTerminals(N_r)
+        for N_r in N_count:
+            terminals_file = 'article/info-{}-{}.out'.format(name, N_r)
+            if not os.path.isfile(terminals_file):
+                C_t, C_nt = data.findTerminals(N_r)
+                with open(terminals_file, 'w') as f:
+                    f.write('C_t = {}\n'.format(C_t))
+                    f.write('C_nt = {}\n'.format(C_nt))
+            else:
+                def readAndSplit(f, data_type, extend=False):
+                    result = []
+                    nonNumeric = compile(r'[^0-9,]')
+                    data = nonNumeric.sub('', f.readline()).split(',')
+                    while len(data) > 0:
+                        two, one = data.pop(), data.pop()
+                        if extend:
+                            result.extend([data_type(one), data_type(two)])
+                        else:
+                            result.append([data_type(one), data_type(two)])
+                    return result
+                with open(terminals_file, 'r') as f:
+                    C_t = readAndSplit(f, int)
+                    C_nt = readAndSplit(f, int, extend=True)
             print('{} >> {} terminals founded ... ok'.format(dt.datetime.now(), N_r))
             RN = data.routing(N_r, C_t, C_nt)
             print('{} >> generated route ... ok'.format(dt.datetime.now()))
@@ -352,3 +405,4 @@ if __name__ == '__main__':
     for item in route_dist:
         print('{},'.format(item))
     print('];')
+    POOL.close()
