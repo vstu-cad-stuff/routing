@@ -20,7 +20,7 @@
 * [auxiliary.py](auxiliary.py): модуль со вспомогательными функциями
 * [data_loader.py](data_loader.py): модуль по загрузке данных из файлов
 * [greedy_algorythm.py](greedy_algorithm.py): модуль реализующий 'жадный' алгоритм
-* [graham.py](graham.py): модулья по построению маршрутов на основе нескольких алгоритмов
- * выпуклая оболочка по [алгоритм Грэхема](https://ru.wikipedia.org/wiki/Алгоритм_Грэхема)
+* [short_path.py](short_path.py): модулья по построению маршрутов на основе нескольких алгоритмов
+ * выпуклая оболочка по [алгоритму Грэхема](https://ru.wikipedia.org/wiki/Алгоритм_Грэхема)
  * поиск терминальных кластеров по принадлежности точки к окружности
  * построение маршрутов по [следующему алгоритму](https://docs.google.com/document/d/1c-BmRMmi4ao1p-muU8SLxFz1QyGHmu_mYOXHvDBXHcQ)
