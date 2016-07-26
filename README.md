@@ -1,4 +1,4 @@
-[0-Network](https://vstu-cad-stuff.github.io/routing/)
+0-Network
 ===============
 The basic idea of the algorithm is to find the network consistently adding new nodes to existed routes in 
 respect with minimal length increasing of designed network.
