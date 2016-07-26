@@ -1,0 +1,3 @@
+[submodule "randomcolor"]
+	path = randomcolor
+	url = https://github.com/vstu-cad-stuff/randomcolor-py
