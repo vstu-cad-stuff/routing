@@ -5,12 +5,15 @@ import numpy as np
 nonNumeric = compile(r'[^\d.]+')
 
 
-# function: read data from file to string
-# input:
-#   filename -- file to read
-# output:
-#   string -- readed data
 def readFile(filename):
+    """
+    read data from file to string
+
+    input:
+        filename -- file to read
+    output:
+        string -- readed data
+    """
     f = open(filename, 'r')
     buf = f.readlines()
     f.close()
@@ -18,17 +21,21 @@ def readFile(filename):
 
 
 class Coords:
-    # packed data
-    packed = {}
-    # cluster count
-    max_cluster = 0
+    def __init__(self):
+        # packed data
+        self.packed = {}
+        # cluster count
+        self.max_cluster = 0
 
-    # function: load raw data and add to dictionary
-    # input:
-    #   raw_points -- string with people data (coords and cluster)
-    # output:
-    #   None
     def loadRaw(self, raw_points):
+        """
+        load raw data and add to dictionary
+
+        input:
+            raw_points -- string with people data (coords and cluster)
+        output:
+            None
+        """
         for string in raw_points:
             data = string.split(',')
             if len(data) < 4:
@@ -37,40 +44,50 @@ class Coords:
             self.max_cluster = max(index, self.max_cluster)
             self.append(float(data[1]), float(data[2]), index)
 
-    # function: append cluster_id by coord hash
-    # input:
-    #   latitude -- first coord
-    #   longitude -- second coord
-    #   cluster -- cluster_id
-    # output:
-    #   None
     def append(self, latitude, longitude, cluster):
+        """
+        append cluster_id by coord hash
+
+        input:
+            latitude -- first coord
+            longitude -- second coord
+            cluster -- cluster_id
+        output:
+            None
+        """
         hashMap = '{:0.010f}, {:0.010f}'.format(latitude, longitude)
         self.packed[hashMap] = cluster
 
-    # function: find cluster_id by coord
-    # input:
-    #   latitude -- first coord
-    #   longitude -- second coord
-    # output:
-    #   cluster_id
     def find(self, latitude, longitude):
+        """
+        find cluster_id by coord
+
+        input:
+            latitude -- first coord
+            longitude -- second coord
+        output:
+            cluster_id        
+        """
         hashMap = '{:0.010f}, {:0.010f}'.format(latitude, longitude)
         return self.packed[hashMap]
 
 
 class Clusters:
-    matrix = None
-    coords = Coords()
-    clusters = {}
+    def __init__(self):
+        self.matrix = None
+        self.coords = Coords()
+        self.clusters = {}
 
-    # function: calculate correspondence matrix by coords & ways
-    # input:
-    #   coords   -- Coord class
-    #   raw_ways -- movement data
-    # output:
-    #   None
     def calculateMatrix(self, coords, raw_ways):
+        """
+        calculate correspondence matrix by coords & ways
+
+        input:
+            coords   -- Coord class
+            raw_ways -- movement data
+        output:
+            None
+        """
         # init square matrix with max_cluster size
         self.matrix = np.zeros((self.coords.max_cluster+1, self.coords.max_cluster+1))
         # iterate ways data
@@ -92,25 +109,31 @@ class Clusters:
             self.matrix[i][i] += 1
             self.matrix[j][j] += 1
 
-    # function: generate correspondence matrix by points & ways data
-    # input:
-    #   points -- filename with people coords
-    #   ways   -- filename with people ways
-    # output:
-    #   numpy array -- correspondence matrix
     def generateMatrix(self, points, ways):
+        """
+        generate correspondence matrix by points & ways data
+
+        input:
+            points -- filename with people coords
+            ways   -- filename with people ways
+        output:
+            numpy array -- correspondence matrix
+        """
         # load raw data from points file
         self.coords.loadRaw(readFile(points))
         # and calculate correspondence matrix
         self.calculateMatrix(self.coords, readFile(ways))
         return self.matrix
 
-    # function: load cluster data from file
-    # input:
-    #   file -- cluster coord data
-    # output:
-    #   dictionary[cluster_id] = [lat, lon]
     def loadClusters(self, file):
+        """
+        load cluster data from file
+    
+        input:
+            file -- cluster coord data
+        output:
+            dictionary[cluster_id] = [lat, lon]
+        """
         data = readFile(file)[2].split(',')
         index = 0
         while index != len(data) - 3:
@@ -121,13 +144,16 @@ class Clusters:
             index += 3
         return self.clusters
 
-    # function: calculate distance from a to b
-    # input:
-    #   a -- first point (cluster_id)
-    #   b -- second point (cluster_id)
-    # output:
-    #   distance in sphere
     def getDistance(self, a, b):
+        """
+        calculate distance from a to b
+    
+        input:
+            a -- first point (cluster_id)
+            b -- second point (cluster_id)
+        output:
+            distance on the sphere
+        """
         # sphere radius (Earth) in meters
         rad = 6372795
         dlng = abs(self.clusters[a][1] - self.clusters[b][1]) * np.pi / 180.0
@@ -138,22 +164,28 @@ class Clusters:
         x = p5 * p4 + p3 * p1 * p6
         return rad * np.arctan2(y, x)
 
-    # function: calculate people count from a to b
-    # input:
-    #   a -- first point (cluster_id)
-    #   b -- second point (cluster_id)
-    # output:
-    #   people count
     def getPeople(self, a, b):
+        """
+        calculate people count from a to b
+
+        input:
+            a -- first point (cluster_id)
+            b -- second point (cluster_id)
+        output:
+            people count
+        """
         return self.matrix[a][b]
 
-    # function: calculate route param by func from cluster_id list
-    # input:
-    #   func  -- calculation func (getPeople, getDistance)
-    #   route -- array of cluster_id
-    # ouput:
-    #   route param
     def getMetricCounter(self, func, route):
+        """
+        calculate route param by func from cluster_id list
+
+        input:
+            func  -- calculation func (getPeople, getDistance)
+            route -- array of cluster_id
+        ouput:
+            route param
+        """
         param = 0
         for index in range(len(route)-1):
             param += func(route[index+0], route[index+1])

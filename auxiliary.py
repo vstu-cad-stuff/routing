@@ -1,19 +1,25 @@
-# function: convert list to human readable format
-# input:
-#   lst -- array list
-# output:
-#   python list
 def toHR(lst):
+    """
+    convert list to human readable format
+
+    input:
+        lst -- array list
+    output:
+        python list
+    """
     return list(map(lambda x: x+1, lst))
 
 
-# funciont: separation of the array with count parts
-# input:
-#   array -- input array
-#   count -- parts count
-# output:
-#   python list
 def toChunk(array, count):
+    """
+    separate array with count parts
+
+    input:
+        array -- input array
+        count -- parts count
+    output:
+        python list
+    """
     chunk_len = len(array) // count
     rest_count = len(array) % count
     chunks = []
@@ -27,52 +33,64 @@ def toChunk(array, count):
     return chunks
 
 
-# function: routes rating function
-# input:
-#   data  -- cluster data class (correspondence matrix, coordinates)
-#   routes -- route network
-# output:
-#   [average distance, average traffic]
 def routeRating(data, routes):
+    """
+    route rating function
+
+    input:
+        data  -- cluster data class (correspondence matrix, coordinates)
+        routes -- route network
+    output:
+        (average distance, average traffic)
+    """
     total_distance = 0
     total_traffic = 0
     for route in routes:
         total_distance += data.getMetricCounter(data.getDistance, route)
         total_traffic += data.getMetricCounter(data.getPeople, route)
-    return [total_distance / len(routes), total_traffic / len(routes)]
+    return (total_distance / len(routes), total_traffic / len(routes))
 
 
-# function: swap two element
-# input:
-#   arr -- python list
-#   i   -- first index
-#   j   -- second index
-# output:
-#   None
 def swapByIndex(arr, i, j):
+    """
+    swap elements by index
+
+    input:
+        arr -- python list
+        i   -- first index
+        j   -- second index
+    output:
+        None
+    """
     arr[i], arr[j] = arr[j], arr[i]
 
 
-# function: swap subarray
-# input:
-#   arr -- python list
-#   i   -- first index
-#   j   -- second index
-# output:
-#   None
 def swapBySequence(arr, i, j):
+    """
+    swap subarray items by index
+
+    input:
+        arr -- python list
+        i   -- first index
+        j   -- second index
+    output:
+        None
+    """
     arr[i:j+1] = arr[i:j+1][::-1]
 
 
-# function: sorting route by metric
-# input:
-#   metric -- 2-param metric python function
-#       param #1 -- first cluster id
-#       param #2 -- second cluster id
-#   route  -- list of cluster_id
-# output:
-#   route  -- sorted list of cluster_id
 def sortByMetric(metric, route):
+    """
+    sort route by metric
+
+    input:
+        metric -- 2-param metric python function
+            param #1 -- first cluster id
+            param #2 -- second cluster id
+        route  -- list of cluster_id
+    output:
+        route  -- sorted list of cluster_id
+    """
     for index in range(len(route)-4):
         p1 = metric(route[index+0], route[index+1])
         p2 = metric(route[index+0], route[index+2])
@@ -85,15 +103,18 @@ def sortByMetric(metric, route):
             swapBySequence(route, index+0, index+3)
 
 
-# function: find item in 'input' by func and move to 'output'
-# input:
-#   func   -- python function (max, min & etc)
-#   data   -- information for comparison
-#   input  -- source list (cluster_id)
-#   output -- destination
-# output:
-#   None
 def funcRemoveAppend(func, data, input, output):
+    """
+    find item in 'input' by func and move to 'output'
+
+    input:
+        func   -- python function (max, min & etc)
+        data   -- information for comparison
+        input  -- source list (cluster_id)
+        output -- destination
+    output:
+        None
+    """
     find = data.index(func(data))
     output.append(input[find])
     input.remove(input[find])
