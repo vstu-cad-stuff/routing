@@ -99,14 +99,14 @@ function load_data(data) {
           this._div = L.DomUtil.create('div', 'slider');
           this._div.innerHTML =
             '<button id="decrement" onclick="present(-1);"><</button>' +
-            '<h4 id="dataset">100 кластеров / 8 маршрутов</h4>' +
+            '<h4 id="dataset">100 clusters / 8 routes</h4>' +
             '<button id="increment" onclick="present(+1);">></button>';
           return this._div;
         };
         slider.addTo(map);
         info.onAdd = function (map) {
           this._div = L.DomUtil.create('div', 'info');
-          this._div.innerHTML = '<h4>Выбранны объект</h4>';
+          this._div.innerHTML = '<h4>Selected object</h4>';
           this.update();
           return this._div;
         };
@@ -117,11 +117,11 @@ function load_data(data) {
             route_num = parseInt(regexp_n.exec(props.label)) - 2;
             route_name = regexp_a.exec(props.label) + ' №' + (route_num + 1);
           }
-          this._div.innerHTML = '<h4>Выбранный объект</h4>' +
+          this._div.innerHTML = '<h4>Selected object</h4>' +
             (props ? '<b>' + route_name + '</b>' : '<b>--</b>') +
-            '<h4>Длина маршрута</h4>' +
+            '<h4>Route length</h4>' +
             '<b>' + (props ? distances[select_index][route_num] + ' м' : '--') + '</b>' +
-            '<h4>Суммарная длина</h4>' + '<b id="total_distance">' + distance_sum + ' м</b>';
+            '<h4>Total length</h4>' + '<b id="total_distance">' + distance_sum + ' м</b>';
         };
         info.addTo(map);
     }
@@ -148,8 +148,8 @@ function present(inc) {
   }
   selected_name = data_list[select_index];
   load_data(data_list[select_index]);
-  dataset.innerHTML = selected_name.substr(7, 3) + ' кластеров / ' +
-    selected_name.substr(11, 3) + ' маршрутов';
-  total_distance.innerHTML = distance_sum + ' м';
+  dataset.innerHTML = selected_name.substr(7, 3) + ' clusters / ' +
+    selected_name.substr(11, 3) + ' routes';
+  total_distance.innerHTML = distance_sum + ' meters';
 }
 present(0);
