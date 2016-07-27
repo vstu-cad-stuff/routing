@@ -134,14 +134,14 @@ class Clusters:
         output:
             dictionary[cluster_id] = [lat, lon]
         """
-        data = readFile(file)[2].split(',')
-        index = 0
-        while index != len(data) - 3:
-            lat = float(nonNumeric.sub('', data[index+0]))
-            lon = float(nonNumeric.sub('', data[index+1]))
-            cluster = int(nonNumeric.sub('', data[index+2]))
+        for item in readFile(file):
+            data = item.split(',')
+            if len(data) < 3:
+                continue
+            lat = float(nonNumeric.sub('', data[0]))
+            lon = float(nonNumeric.sub('', data[1]))
+            cluster = int(nonNumeric.sub('', data[2]))
             self.clusters[cluster] = [lat, lon]
-            index += 3
         return self.clusters
 
     def getDistance(self, a, b):
