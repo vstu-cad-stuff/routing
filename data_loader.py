@@ -1,8 +1,13 @@
+from geographiclib.geodesic import Geodesic
 from re import sub, compile
 import numpy as np
+import json as js
+import requests
 
 # compiled regex: select all chars ignore 0-9 and .
 nonNumeric = compile(r'[^\d.]+')
+
+OSRM_SERVER_URL = 'http://XXX.XXX.XXX.XXX:5000/'
 
 
 def readFile(filename):
@@ -144,7 +149,7 @@ class Clusters:
             self.clusters[cluster] = [lat, lon]
         return self.clusters
 
-    def getDistance(self, a, b):
+    def getSphereDistance(self, a, b):
         """
         calculate distance from a to b
     
@@ -154,15 +159,25 @@ class Clusters:
         output:
             distance on the sphere
         """
-        # sphere radius (Earth) in meters
-        rad = 6372795
-        dlng = abs(self.clusters[a][1] - self.clusters[b][1]) * np.pi / 180.0
-        lat1, lat2 = self.clusters[a][0] * np.pi / 180.0, self.clusters[b][0] * np.pi / 180.0
-        p1, p2, p3 = np.cos(lat2), np.sin(dlng), np.cos(lat1)
-        p4, p5, p6 = np.sin(lat2), np.sin(lat1), np.cos(dlng)
-        y = np.sqrt(np.power(p1 * p2, 2) + np.power(p3 * p4 - p5 * p1 * p6, 2))
-        x = p5 * p4 + p3 * p1 * p6
-        return rad * np.arctan2(y, x)
+        p1, p2 = self.clusters[a], self.clusters[b]
+        return Geodesic.WGS84.Inverse(p1[1], p1[0], p2[1], p2[0])['s12']
+
+    def getOSRMDistance(self, a, b):
+        """
+        calculate distance from a to b
+    
+        input:
+            a -- first point (cluster_id)
+            b -- second point (cluster_id)
+        output:
+            distance on the road network
+        """
+        p1, p2 = self.clusters[a], self.clusters[b]
+        viaroute = OSRM_SERVER_URL + 'viaroute?alt=false&geometry=false'
+        viaroute += '&loc={},{}&loc={},{}'.format(p1[1], p1[0], p2[1], p2[0])
+        req = js.loads(requests.get(viaroute).text)
+        return req['route_summary']['total_distance']
+
 
     def getPeople(self, a, b):
         """

@@ -4,6 +4,7 @@ The basic idea of the algorithm is modify initial public transport network using
 criteria (route length & etc.). 
 
 ## Using libraries
+* [geographiclib](https://pypi.python.org/pypi/geographiclib)
 * [numpy](https://pypi.python.org/pypi/numpy)
 
 ## Results
