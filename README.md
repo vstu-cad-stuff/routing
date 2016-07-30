@@ -5,10 +5,12 @@ criteria (route length & etc.).
 
 ## Using libraries
 * [geographiclib](https://pypi.python.org/pypi/geographiclib)
+* [polyline](https://pypi.python.org/pypi/polyline)
+* [geojson](https://pypi.python.org/pypi/geojson/)
 * [numpy](https://pypi.python.org/pypi/numpy)
 
 ## Results
-[Map with last results](https://vstu-cad-stuff.github.io/routing/network/)
+[Map with test data results](https://vstu-cad-stuff.github.io/routing/network/)
 
 ## How to use
 Run the script to modify sample transport network
