@@ -16,7 +16,7 @@ import sys
 import os
 
 # OSRM server
-SERVER_URL = 'http://79.170.167.101:5000/'
+SERVER_URL = 'http://127.0.0.1:5000/'
 THREAD_COUNT = 8
 
 # thread THREAD_COUNT thread pool
@@ -154,18 +154,20 @@ class GeoConverter:
             return self
         raise Exception('data is not loaded')
 
-    def load_raw(self, filename):
+    def load_json(self, filename):
         with open(filename, 'r') as jfile:
             self.geo_data = {}
-            raw_points = jfile.readlines()
-            for string in raw_points:
-                data = string.split(',')
-                if len(data) < 3:
-                    continue
-                data_2 = int(data[2].replace(']', ''))
-                data_1 = float(data[1].replace('[', ''))
-                data_0 = float(data[0].replace('[', ''))
-                self.geo_data[data_2] = [data_1, data_0]
+            points = js.load(jfile)
+            for p in points:
+                self.geo_data[p['id']] = (p['lon'], p['lat'])
+            # for string in raw_points:
+            #     data = string.split(',')
+            #     if len(data) < 3:
+            #         continue
+            #     data_2 = int(data[2].replace(']', ''))
+            #     data_1 = float(data[1].replace('[', ''))
+            #     data_0 = float(data[0].replace('[', ''))
+            #     self.geo_data[data_2] = [data_1, data_0]
             return self
         raise Exception('data is not loaded')
 
@@ -341,51 +343,52 @@ def dump(list_data, data, filename, geometry='route'):
         gs.dump(features, jfile)
 
 if __name__ == '__main__':
-    route_name = [100, 150, 200, 300]
-    N_count = range(8, 20, 2)
+    name = '35'
+    N_count = range(2, 28+1, 2)
     route_dist = []
     matrix = Clusters()
-    for name in route_name:
-        print('{} >> loading data {}_p.js'.format(dt.datetime.now(), name))
-        matrix.generateMatrix('./data/{}_p.js'.format(name), './data/ways.js')
-        data = GeoConverter(matrix).load_raw('./data/{}_c.js'.format(name)).graham().center()
-        print('{} >> data loaded ... ok'.format(dt.datetime.now()))
-        for N_r in N_count:
-            if not os.path.isdir('article'):
-                os.mkdir('article')
-            terminals_file = 'article/info-{}-{}.out'.format(name, N_r)
-            if not os.path.isfile(terminals_file):
-                C_t, C_nt = data.findTerminals(N_r)
-                with open(terminals_file, 'w') as f:
-                    f.write('C_t = {}\n'.format(C_t))
-                    f.write('C_nt = {}\n'.format(C_nt))
-            else:
-                def readAndSplit(f, data_type, extend=False):
-                    result = []
-                    nonNumeric = compile(r'[^0-9,]')
-                    data = nonNumeric.sub('', f.readline()).split(',')
-                    while len(data) > 0:
+    print('{} >> loading data points.js'.format(dt.datetime.now()))
+    matrix.generateMatrix('./data/points.js', './data/ways.js')
+    data = GeoConverter(matrix).load_json('./data/clusters.js').graham().center()
+    print('{} >> data loaded ... ok'.format(dt.datetime.now()))
+    for N_r in N_count:
+        if not os.path.isdir('article'):
+            os.mkdir('article')
+        terminals_file = 'article/info-{}-{}.out'.format(name, N_r)
+        if not os.path.isfile(terminals_file):
+            C_t, C_nt = data.findTerminals(N_r)
+            with open(terminals_file, 'w') as f:
+                f.write('C_t = {}\n'.format(C_t))
+                f.write('C_nt = {}\n'.format(C_nt))
+        else:
+            def readAndSplit(f, data_type, extend=False):
+                result = []
+                nonNumeric = compile(r'[^0-9,]')
+                data = nonNumeric.sub('', f.readline()).split(',')
+                if not extend:
+                    while data:
                         two, one = data.pop(), data.pop()
-                        if extend:
-                            result.extend([data_type(one), data_type(two)])
-                        else:
-                            result.append([data_type(one), data_type(two)])
-                    return result
-                with open(terminals_file, 'r') as f:
-                    C_t = readAndSplit(f, int)
-                    C_nt = readAndSplit(f, int, extend=True)
-            print('{} >> {} terminals founded ... ok'.format(dt.datetime.now(), N_r))
-            RN = data.routing(N_r, C_t, C_nt)
-            print('{} >> generated route ... ok'.format(dt.datetime.now()))
-            current = []
-            for index, item in itIndexData(RN):
-                print('{:04} -- {}'.format(index, item))
-                current.append(item.dist)
-            print('{} >> data saved in ./article/result-{}-{}.json'.format(dt.datetime.now(), name, N_r))
-            dump(RN, data, './article/result-{}-{}.json'.format(name, N_r))
-            route_dist.append(current)
-    print('distances = [\n')
-    for item in route_dist:
-        print('{},'.format(item))
-    print('];')
+                        result.append([data_type(one), data_type(two)])
+                    result.reverse()
+                else:
+                    result = list(map(lambda x: data_type(x), data))
+                return result
+            with open(terminals_file, 'r') as f:
+                C_t = readAndSplit(f, int)
+                C_nt = readAndSplit(f, int, extend=True)
+        print('{} >> {} terminals founded ... ok'.format(dt.datetime.now(), N_r))
+        RN = data.routing(N_r, C_t, C_nt)
+        print('{} >> generated route ... ok'.format(dt.datetime.now()))
+        current = []
+        for index, item in itIndexData(RN):
+            print('{:04} -- {}'.format(index, item))
+            current.append(item.dist)
+        print('{} >> data saved in ./article/result-{}-{}.json'.format(dt.datetime.now(), name, N_r))
+        dump(RN, data, './article/result-{}-{}.json'.format(name, N_r))
+        route_dist.append(current)
+    with open('distances.js', 'w') as fp:
+        fp.write('distances = [')
+        for item in route_dist:
+            fp.write('{},\n'.format(item))
+        fp.write('];')
     POOL.close()

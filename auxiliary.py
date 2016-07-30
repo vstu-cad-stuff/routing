@@ -1,7 +1,6 @@
 def toHR(lst):
     """
     convert list to human readable format
-
     input:
         lst -- array list
     output:
@@ -13,7 +12,6 @@ def toHR(lst):
 def toChunk(array, count):
     """
     separate array with count parts
-
     input:
         array -- input array
         count -- parts count
@@ -36,7 +34,6 @@ def toChunk(array, count):
 def routeRating(data, routes):
     """
     route rating function
-
     input:
         data  -- cluster data class (correspondence matrix, coordinates)
         routes -- route network
@@ -46,15 +43,14 @@ def routeRating(data, routes):
     total_distance = 0
     total_traffic = 0
     for route in routes:
-        total_distance += data.getMetricCounter(data.getDistance, route)
+        total_distance += data.getMetricCounter(data.getOSRMDistance, route)
         total_traffic += data.getMetricCounter(data.getPeople, route)
-    return (total_distance / len(routes), total_traffic / len(routes))
+    return total_traffic / total_distance
 
 
 def swapByIndex(arr, i, j):
     """
     swap elements by index
-
     input:
         arr -- python list
         i   -- first index
@@ -68,7 +64,6 @@ def swapByIndex(arr, i, j):
 def swapBySequence(arr, i, j):
     """
     swap subarray items by index
-
     input:
         arr -- python list
         i   -- first index
@@ -82,7 +77,6 @@ def swapBySequence(arr, i, j):
 def sortByMetric(metric, route):
     """
     sort route by metric
-
     input:
         metric -- 2-param metric python function
             param #1 -- first cluster id
@@ -106,7 +100,6 @@ def sortByMetric(metric, route):
 def funcRemoveAppend(func, data, input, output):
     """
     find item in 'input' by func and move to 'output'
-
     input:
         func   -- python function (max, min & etc)
         data   -- information for comparison
