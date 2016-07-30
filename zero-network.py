@@ -315,8 +315,8 @@ class GeoConverter:
         return RN
 
 
-def dump(list_data, data, filename, geometry='route'):
-    with open(filename, 'w') as jfile:
+def dump(list_data, data, filename_l, filename_c, geometry='route'):
+    with open(filename_l, 'w') as jfile:
         rnd_color = RandomColor()
         colors = rnd_color.generate(count=len(list_data))
         features = []
@@ -341,6 +341,11 @@ def dump(list_data, data, filename, geometry='route'):
             features.append(term)
         feature_r = gs.FeatureCollection([features])
         gs.dump(features, jfile)
+    with open(filename_c, 'w') as jfile:
+        jfile.write('RN = [')
+        for item in list_data:
+            jfile.write('{},\n'.format(item.ids))
+        jfile.write('];')
 
 if __name__ == '__main__':
     name = '35'
@@ -384,7 +389,8 @@ if __name__ == '__main__':
             print('{:04} -- {}'.format(index, item))
             current.append(item.dist)
         print('{} >> data saved in ./article/result-{}-{}.json'.format(dt.datetime.now(), name, N_r))
-        dump(RN, data, './article/result-{}-{}.json'.format(name, N_r))
+        dump(RN, data, './article/result-{}-{}.json'.format(name, N_r), 
+             './article/clusters-{}-{}.json'.format(name, N_r))
         route_dist.append(current)
     with open('distances.js', 'w') as fp:
         fp.write('distances = [')
