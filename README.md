@@ -6,6 +6,7 @@ respect with minimal length increasing of designed network.
 ## Using libraries
 * [geographiclib](https://pypi.python.org/pypi/geographiclib)
 * [polyline](https://pypi.python.org/pypi/polyline)
+* [geojson](https://pypi.python.org/pypi/geojson/)
 * [numpy](https://pypi.python.org/pypi/numpy)
 
 ## Results
