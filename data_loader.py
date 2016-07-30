@@ -7,8 +7,7 @@ import requests
 # compiled regex: select all chars ignore 0-9 and .
 nonNumeric = compile(r'[^\d.]+')
 
-OSRM_SERVER_URL = 'http://XXX.XXX.XXX.XXX:5000/'
-
+OSRM_SERVER_URL = 'http://127.0.0.1:5000/'
 
 def readFile(filename):
     """
@@ -32,22 +31,28 @@ class Coords:
         # cluster count
         self.max_cluster = 0
 
-    def loadRaw(self, raw_points):
+    def loadJSON(self, points):
         """
-        load raw data and add to dictionary
+        load json data and add to dictionary
 
         input:
-            raw_points -- string with people data (coords and cluster)
+            points -- input file with coords and cluster data
         output:
             None
         """
-        for string in raw_points:
-            data = string.split(',')
-            if len(data) < 4:
-                continue
-            index = int(nonNumeric.sub('', data[3]))
-            self.max_cluster = max(index, self.max_cluster)
-            self.append(float(data[1]), float(data[2]), index)
+        with open(points, 'r') as fp:
+            data = js.load(fp)
+            for item in data:
+                index = item['clusterId']
+                self.max_cluster = max(index, self.max_cluster)
+                self.append(item['lat'], item['lon'], index)
+        # for string in raw_points:
+        #     data = string.split(',')
+        #     if len(data) < 4:
+        #         continue
+        #     index = int(nonNumeric.sub('', data[3]))
+        #     self.max_cluster = max(index, self.max_cluster)
+        #     self.append(float(data[1]), float(data[2]), index)
 
     def append(self, latitude, longitude, cluster):
         """
@@ -60,7 +65,7 @@ class Coords:
         output:
             None
         """
-        hashMap = '{:0.010f}, {:0.010f}'.format(latitude, longitude)
+        hashMap = '{:0.05f}, {:0.05f}'.format(latitude, longitude)
         self.packed[hashMap] = cluster
 
     def find(self, latitude, longitude):
@@ -73,7 +78,7 @@ class Coords:
         output:
             cluster_id        
         """
-        hashMap = '{:0.010f}, {:0.010f}'.format(latitude, longitude)
+        hashMap = '{:0.05f}, {:0.05f}'.format(latitude, longitude)
         return self.packed[hashMap]
 
 
@@ -95,24 +100,25 @@ class Clusters:
         """
         # init square matrix with max_cluster size
         self.matrix = np.zeros((self.coords.max_cluster+1, self.coords.max_cluster+1))
-        # iterate ways data
-        for string in raw_ways:
-            data = string.split(',')
-            # ignore uncorrect data
-            if len(data) < 5:
-                continue
-            # parse & convert to float
-            p1 = float(nonNumeric.sub('', data[1]))
-            p2 = float(nonNumeric.sub('', data[2]))
-            p3 = float(nonNumeric.sub('', data[3]))
-            p4 = float(nonNumeric.sub('', data[4]))
-            # find cluster_id by coords
-            i, j = self.coords.find(p1, p2), self.coords.find(p3, p4)
-            # increment cluster matrix
-            self.matrix[i][j] += 1
-            self.matrix[j][i] += 1
-            self.matrix[i][i] += 1
-            self.matrix[j][j] += 1
+        with open(raw_ways, 'r') as f:
+            # iterate by ways data
+            for string in f:
+                data = string.split(',')
+                # ignore uncorrect data
+                if len(data) < 5:
+                    continue
+                # parse & convert to float
+                p1 = float(nonNumeric.sub('', data[1]))
+                p2 = float(nonNumeric.sub('', data[2]))
+                p3 = float(nonNumeric.sub('', data[3]))
+                p4 = float(nonNumeric.sub('', data[4]))
+                # find cluster_id by coords
+                i, j = self.coords.find(p1, p2), self.coords.find(p3, p4)
+                # increment cluster matrix
+                self.matrix[i][j] += 1
+                self.matrix[j][i] += 1
+                self.matrix[i][i] += 1
+                self.matrix[j][j] += 1
 
     def generateMatrix(self, points, ways):
         """
@@ -125,12 +131,12 @@ class Clusters:
             numpy array -- correspondence matrix
         """
         # load raw data from points file
-        self.coords.loadRaw(readFile(points))
+        self.coords.loadJSON(points)
         # and calculate correspondence matrix
-        self.calculateMatrix(self.coords, readFile(ways))
+        self.calculateMatrix(self.coords, ways)
         return self.matrix
 
-    def loadClusters(self, file):
+    def loadClusters(self, filename):
         """
         load cluster data from file
     
@@ -139,15 +145,12 @@ class Clusters:
         output:
             dictionary[cluster_id] = [lat, lon]
         """
-        for item in readFile(file):
-            data = item.split(',')
-            if len(data) < 3:
-                continue
-            lat = float(nonNumeric.sub('', data[0]))
-            lon = float(nonNumeric.sub('', data[1]))
-            cluster = int(nonNumeric.sub('', data[2]))
-            self.clusters[cluster] = [lat, lon]
-        return self.clusters
+        with open(filename, 'r') as jfile:
+            points = js.load(jfile)
+            for p in points:
+                self.clusters[p['id']] = (p['lon'], p['lat'])
+            return self.clusters
+        raise('Unexpected error')
 
     def getSphereDistance(self, a, b):
         """
@@ -177,7 +180,6 @@ class Clusters:
         viaroute += '&loc={},{}&loc={},{}'.format(p1[1], p1[0], p2[1], p2[0])
         req = js.loads(requests.get(viaroute).text)
         return req['route_summary']['total_distance']
-
 
     def getPeople(self, a, b):
         """

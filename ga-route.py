@@ -1,7 +1,11 @@
 from data_loader import Clusters
+from randomcolor.randomcolor import RandomColor
+from polyline.codec import PolylineCodec
 import auxiliary as ax
 import numpy as np
-
+import json as js
+import geojson as gs
+import requests
 
 def mutation(data, route, parts=2):
     """
@@ -18,7 +22,7 @@ def mutation(data, route, parts=2):
     new_route = []
     for item in split_route:
         if np.random.random() >= 0.5:
-            ax.sortByMetric(data.getSphereDistance, item)
+            ax.sortByMetric(data.getOSRMDistance, item)
         else:
             ax.sortByMetric(data.getPeople, item)
         new_route += item
@@ -41,13 +45,13 @@ def crossover(data, route):
     ax.funcRemoveAppend(max, peoples, old_route, new_route)
     i = 0
     while len(old_route) > 0:
-        distances = list(map(lambda x: data.getSphereDistance(new_route[i], x), old_route))
+        distances = list(map(lambda x: data.getOSRMDistance(new_route[i], x), old_route))
         ax.funcRemoveAppend(min, distances, old_route, new_route)
         i += 1
     return new_route
 
 
-def buildRoutes(data, routes, *, write_result=False, dup_count_max=20, delta=1E-10):
+def buildRoutes(data, routes, *, dup_count_max=10, delta=1E-8):
     """
     modify input route network with using genetic algorithm
 
@@ -76,33 +80,67 @@ def buildRoutes(data, routes, *, write_result=False, dup_count_max=20, delta=1E-
             new_routes.append(result)
         rate_after = ax.routeRating(data, new_routes)
         print(' delta = {:+.4e}'.format(rate_before - rate_after))
-        if rate_after < rate_before:
+        if rate_after > rate_before:
             routes = new_routes
             dup_count = 0
-        elif rate_after - rate_before > delta:
+        elif rate_after - rate_before < delta:
             dup_count += 1
             if dup_count >= dup_count_max:
                 inf_loop = False
-    if write_result:
-        from datetime import datetime
-        with open('network-iteration-{:%Y-%m-%d-%H-%M-%S}.js'.format(datetime.now()), 'w') as f:
-            f.write('network_list.push({});'.format(routes))
     return routes
 
+def loadRoadNetwork(data, file):
+    id_list = []
+    with open(file, 'r') as fp:
+        load_data = fp.read().replace('\n', '')
+        js_data = js.loads('{"RN":' + load_data[5:-3] + ']}')
+        return js_data['RN']
+    raise('Unexpected error')
+
+def dump_result(list_data, data, filename):
+    def route_geometry(ids):
+        viaroute = 'http://127.0.0.1:5000/viaroute?alt=false&geometry=true'
+        for item in ids:
+            try:
+                coords = data.clusters[item]
+                viaroute += '&loc={},{}'.format(coords[1], coords[0])
+            except:
+                print('>> note {} not found!'.format(item))
+                sys.exit()
+        req = js.loads(requests.get(viaroute).text)
+        return list(map(
+            lambda x: [x[1] / 10.0, x[0] / 10.0], PolylineCodec().decode(req['route_geometry'])
+        ))
+
+    with open(filename, 'w') as jfile:
+        rnd_color = RandomColor()
+        colors = rnd_color.generate(count=len(list_data))
+        features = []
+        index = 1
+        features.append(gs.MultiPoint(list(data.clusters.values())))
+        for item in list_data:
+            color = colors.pop()
+            terminal = [item[0], item[-1]]
+            RP = route_geometry(item)
+            coords = gs.Feature(geometry=gs.LineString(RP),
+                properties={'label': 'Route #{}'.format(index+1), 'color': color})
+            term = gs.Feature(geometry=gs.MultiPoint(
+                (data.clusters[terminal[0]], data.clusters[terminal[1]]),
+                properties={'label': 'Terminal #{}'.format(index+1), 'color': color}))
+            index += 1
+            features.append(coords)
+            features.append(term)
+        feature_r = gs.FeatureCollection([features])
+        gs.dump(features, jfile)
+
 if __name__ == '__main__':
+    name, data_set = '35', range(2, 28+1, 2)
     data = Clusters()
-    data.generateMatrix('./data/100_p.js', './data/ways.js')
-    data.loadClusters('./data/100_c.js')
-    init_route = [
-        [88, 52, 74, 33, 45, 41, 34, 10, 16, 19, 1],
-        [71, 9, 25, 87, 58, 15, 30, 13, 69, 61, 67],
-        [38, 32, 36, 70, 80, 39, 85, 81, 21, 89, 67],
-        [4, 98, 46, 14, 65, 90, 68, 22, 79, 56, 93],
-        [86, 55, 82, 29, 57, 12, 0, 5, 17, 47, 93],
-        [96, 26, 50, 72, 48, 43, 18, 35, 49, 59, 20],
-        [37, 42, 97, 62, 78, 75, 27, 60, 6, 51, 63],
-        [94, 28, 91, 83, 3, 77, 44, 23, 66, 8, 24]
-    ]
-    print('>> before =', init_route)
-    result = buildRoutes(data, init_route)
-    print('>>  after =', result)
+    data.generateMatrix('./data/points.js', './data/ways.js')
+    data.loadClusters('./data/clusters.js')
+    for fset in data_set:
+        file = './data_set/clusters-{}-{}.json'.format(name, fset)
+        init_route = loadRoadNetwork(data, file)
+        print('>> start processing `{}` file'.format(file))
+        result = buildRoutes(data, init_route)
+        dump_result(result, data, 'result-{}-{}.json'.format(name, fset))

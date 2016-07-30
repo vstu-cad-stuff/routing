@@ -46,7 +46,7 @@ def routeRating(data, routes):
     total_distance = 0
     total_traffic = 0
     for route in routes:
-        total_distance += data.getMetricCounter(data.getSphereDistance, route)
+        total_distance += data.getMetricCounter(data.getOSRMDistance, route)
         total_traffic += data.getMetricCounter(data.getPeople, route)
     return total_traffic / total_distance
 
