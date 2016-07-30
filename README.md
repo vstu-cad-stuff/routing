@@ -9,7 +9,7 @@ respect with minimal length increasing of designed network.
 * [numpy](https://pypi.python.org/pypi/numpy)
 
 ## Results
-[Map with last results](https://vstu-cad-stuff.github.io/routing/geojson/)
+[Map with test data results](https://vstu-cad-stuff.github.io/routing/geojson/)
 
 ## How to use
 Run the script to generate a transport network
